@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ayurveda College Salary Calculator — September 2025</title>
+  <title>Jain AGM AMCH Salary Calculator</title>
   <style>
     :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
     body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:24px;color:#111}
@@ -25,6 +25,8 @@
     footer{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
     @media (max-width:760px){.grid{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
     .help{font-size:13px;color:#334155;background:#f8fafc;padding:10px;border-radius:8px}
+    .staff-list{max-height:160px;overflow:auto;border:1px solid #eef2ff;padding:8px;border-radius:8px}
+    .staff-row{display:flex;justify-content:space-between;gap:8px;padding:6px;border-bottom:1px dashed #f1f5f9}
   </style>
 </head>
 <body>
@@ -33,12 +35,25 @@
       <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
       <div>
         <h1>Ayurveda Salary Calculator — September 2025</h1>
-        <div class="muted">Single-file web tool to compute salary after unpaid hours & payroll deductions (Professional Tax, ESI, EPF).</div>
+        <div class="muted">Single-file web tool: unpaid hours + direct deduction amounts for EPF/ESI + Professional Tax. Save staff profiles for reuse.</div>
       </div>
     </header>
 
     <div class="card">
       <form id="calcForm" onsubmit="return false;">
+        <div class="grid">
+          <div>
+            <label>Staff name</label>
+            <input type="text" id="staffName" placeholder="e.g. Dr. Rahul Sharma">
+          </div>
+          <div>
+            <label>Designation / Dept.</label>
+            <input type="text" id="staffDesig" placeholder="e.g. Associate Professor / Kayachikitsa">
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
         <div class="grid">
           <div>
             <label>College Name</label>
@@ -93,14 +108,14 @@
 
         <div class="grid-3">
           <div>
-            <label>EPF (employee %) — applied on (subtotal)</label>
-            <input type="number" id="epfPercent" value="12" min="0" step="0.1">
-            <div class="small">Default 12% (editable). If you prefer fixed amount, enter percentage equivalent.</div>
+            <label>EPF — exact amount to deduct (₹)</label>
+            <input type="number" id="epfAmount" value="684" min="0" step="0.01">
+            <div class="small">Enter the exact employee EPF deduction amount (e.g. ₹684). Leave 0 if not applicable.</div>
           </div>
           <div>
-            <label>ESI (employee %) — applied on (subtotal)</label>
-            <input type="number" id="esiPercent" value="1.75" min="0" step="0.01">
-            <div class="small">Default 1.75% (editable)</div>
+            <label>ESI — exact amount to deduct (₹)</label>
+            <input type="number" id="esiAmount" value="100" min="0" step="0.01">
+            <div class="small">Enter exact ESI amount. Leave 0 if not applicable.</div>
           </div>
           <div>
             <label>Professional Tax (₹)</label>
@@ -115,9 +130,18 @@
           <button id="calcBtn" onclick="compute()">Calculate Salary</button>
           <button class="secondary" onclick="resetForm()">Reset</button>
           <button class="secondary" onclick="printPayslip()">Print / Save as PDF</button>
+          <button class="secondary" onclick="saveStaffProfile()">Save Staff Profile</button>
         </div>
 
       </form>
+
+      <div style="height:12px"></div>
+
+      <div>
+        <label>Saved staff profiles</label>
+        <div class="staff-list" id="staffList"></div>
+      </div>
+
     </div>
 
     <div class="card" id="resultsCard" style="display:none">
@@ -129,7 +153,7 @@
         <div class="small">Generated: <span id="genDate"></span></div>
       </div>
 
-      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF & ESI are calculated on the amount after unpaid-hour deduction (subtotal). You can edit EPF/ESI percentages and Professional Tax.</div>
+      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF/ESI are now entered as exact deduction amounts (₹) and applied directly.</div>
 
       <div style="height:12px"></div>
 
@@ -168,11 +192,88 @@
 
     </div>
 
-    <footer>Tip: Edit EPF/ESI percentages and Professional Tax to match your state/college rules.</footer>
+    <footer>Tip: Staff profiles are stored locally in your browser (LocalStorage). They will remain available on the same browser/device unless you clear site data.</footer>
   </div>
 
 <script>
+// Utilities
 function formatMoney(x){return Number(x).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+// Staff profile management using localStorage
+const STORAGE_KEY = 'ayurveda_salary_staff_profiles_v1';
+function loadStaffProfiles(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){return []}
+}
+function saveStaffProfiles(list){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  renderStaffList();
+}
+function renderStaffList(){
+  const container = document.getElementById('staffList');
+  const list = loadStaffProfiles();
+  container.innerHTML = '';
+  if(list.length===0){container.innerHTML = '<div class="small">No saved profiles. Use "Save Staff Profile" to add.</div>'; return}
+  list.forEach((s,idx)=>{
+    const div = document.createElement('div'); div.className='staff-row';
+    div.innerHTML = `<div style="flex:1"><strong>${escapeHtml(s.name||'Unnamed')}</strong><div class="small">${escapeHtml(s.desig||'')}</div></div>
+      <div style="width:140px;display:flex;gap:6px;justify-content:flex-end">
+        <button class='secondary' onclick='loadProfile(${idx})' style='padding:6px 8px'>Load</button>
+        <button class='secondary' onclick='deleteProfile(${idx})' style='padding:6px 8px'>Delete</button>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];}); }
+
+function saveStaffProfile(){
+  const name = document.getElementById('staffName').value.trim();
+  if(!name){alert('Please enter staff name before saving.'); return;}
+  const desig = document.getElementById('staffDesig').value.trim();
+  const profile = {
+    name, desig,
+    college: document.getElementById('college').value,
+    totalDays: document.getElementById('totalDays').value,
+    sundays: document.getElementById('sundays').value,
+    hoursPerDay: document.getElementById('hoursPerDay').value,
+    gross: document.getElementById('gross').value,
+    clDays: document.getElementById('clDays').value,
+    shortfall: document.getElementById('shortfall').value,
+    epfAmount: document.getElementById('epfAmount').value,
+    esiAmount: document.getElementById('esiAmount').value,
+    profTaxAmt: document.getElementById('profTaxAmt').value
+  };
+  const list = loadStaffProfiles();
+  list.push(profile);
+  saveStaffProfiles(list);
+  alert('Profile saved locally. Use Load to prefill next month.');
+}
+function loadProfile(idx){
+  const list = loadStaffProfiles();
+  const p = list[idx];
+  if(!p) return;
+  document.getElementById('staffName').value = p.name||'';
+  document.getElementById('staffDesig').value = p.desig||'';
+  document.getElementById('college').value = p.college||document.getElementById('college').value;
+  document.getElementById('totalDays').value = p.totalDays||document.getElementById('totalDays').value;
+  document.getElementById('sundays').value = p.sundays||document.getElementById('sundays').value;
+  document.getElementById('hoursPerDay').value = p.hoursPerDay||document.getElementById('hoursPerDay').value;
+  document.getElementById('gross').value = p.gross||document.getElementById('gross').value;
+  document.getElementById('clDays').value = p.clDays||document.getElementById('clDays').value;
+  document.getElementById('shortfall').value = p.shortfall||document.getElementById('shortfall').value;
+  document.getElementById('epfAmount').value = p.epfAmount||document.getElementById('epfAmount').value;
+  document.getElementById('esiAmount').value = p.esiAmount||document.getElementById('esiAmount').value;
+  document.getElementById('profTaxAmt').value = p.profTaxAmt||document.getElementById('profTaxAmt').value;
+  alert('Profile loaded into form. Click Calculate to update payslip.');
+}
+function deleteProfile(idx){
+  if(!confirm('Delete this saved profile?')) return;
+  const list = loadStaffProfiles(); list.splice(idx,1); saveStaffProfiles(list);
+}
+
+// Core computation
 function compute(){
   // gather inputs
   const college = document.getElementById('college').value;
@@ -182,8 +283,8 @@ function compute(){
   const gross = Number(document.getElementById('gross').value)||0;
   const clDays = Number(document.getElementById('clDays').value)||0;
   const shortfall = Number(document.getElementById('shortfall').value)||0;
-  const epfPercent = Number(document.getElementById('epfPercent').value)||0;
-  const esiPercent = Number(document.getElementById('esiPercent').value)||0;
+  const epfAmount = Number(document.getElementById('epfAmount').value)||0;
+  const esiAmount = Number(document.getElementById('esiAmount').value)||0;
   const profTaxAmt = Number(document.getElementById('profTaxAmt').value)||0;
 
   // derived
@@ -191,7 +292,7 @@ function compute(){
   const totalWorkingHours = workingDays * hoursPerDay;
   const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
 
-  // Assumption: CLs are paid and the provided shortfall is the unpaid hours IN ADDITION TO CLs (as you clarified).
+  // CLs paid
   const clHours = clDays * hoursPerDay;
   // unpaid hours = shortfall (as per clarified requirement)
   const unpaidHours = shortfall;
@@ -200,9 +301,9 @@ function compute(){
   // subtotal after unpaid-hour deduction
   const subtotal = gross - unpaidDeduction;
 
-  // payroll deductions applied on subtotal
-  const epf = subtotal * (epfPercent/100);
-  const esi = subtotal * (esiPercent/100);
+  // payroll deductions: user-entered amounts (EPF/ESI) applied directly
+  const epf = epfAmount;
+  const esi = esiAmount;
   const totalDeductions = epf + esi + profTaxAmt;
 
   const net = subtotal - totalDeductions;
@@ -226,20 +327,22 @@ function compute(){
   document.getElementById('outRounded').innerText = '₹ ' + formatMoney(Math.round(net*100)/100);
 
   document.getElementById('genDate').innerText = new Date().toLocaleString();
-  document.getElementById('resHeader').innerText = college + ' — ' + document.getElementById('month').value;
+  document.getElementById('resHeader').innerText = (document.getElementById('staffName').value||'Teacher') + ' — ' + document.getElementById('month').value;
   document.getElementById('resultsCard').style.display = 'block';
 }
 
 function resetForm(){
   if(!confirm('Reset form to defaults?')) return;
+  document.getElementById('staffName').value = '';
+  document.getElementById('staffDesig').value = '';
   document.getElementById('totalDays').value = 30;
   document.getElementById('sundays').value = 4;
   document.getElementById('hoursPerDay').value = 7;
   document.getElementById('gross').value = 57000;
   document.getElementById('clDays').value = 2;
   document.getElementById('shortfall').value = 15;
-  document.getElementById('epfPercent').value = 12;
-  document.getElementById('esiPercent').value = 1.75;
+  document.getElementById('epfAmount').value = 684;
+  document.getElementById('esiAmount').value = 100;
   document.getElementById('profTaxAmt').value = 200;
   document.getElementById('resultsCard').style.display = 'none';
 }
@@ -251,8 +354,9 @@ function printPayslip(){
   window.print();
 }
 
-// compute default on load
-window.addEventListener('load',()=>{compute()});
+// initialize
+window.addEventListener('load',()=>{ renderStaffList(); compute(); });
+
 </script>
 </body>
 </html>
