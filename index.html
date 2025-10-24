@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jain AGM AMCH Salary Calculator</title>
+  <title>JAIN AGM AMCH SALARY CALCULATOR TOOL</title>
   <style>
     :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
     body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:24px;color:#111}
@@ -34,7 +34,7 @@
     <header>
       <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
       <div>
-        <h1>Ayurveda Salary Calculator — September 2025</h1>
+        <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
         <div class="muted">Single-file web tool: unpaid hours + direct deduction amounts for EPF/ESI + Professional Tax. Save staff profiles for reuse.</div>
       </div>
     </header>
@@ -47,8 +47,12 @@
             <input type="text" id="staffName" placeholder="e.g. Dr. Rahul Sharma">
           </div>
           <div>
-            <label>Designation / Dept.</label>
-            <input type="text" id="staffDesig" placeholder="e.g. Associate Professor / Kayachikitsa">
+            <label>Designation</label>
+            <select id="staffDesig">
+              <option value="Assistant Professor">Assistant Prof</option>
+              <option value="Associate Professor">Associate Prof</option>
+              <option value="Professor">Professor</option>
+            </select>
           </div>
         </div>
 
@@ -56,12 +60,56 @@
 
         <div class="grid">
           <div>
+            <label>Department</label>
+            <select id="department">
+              <option value="SAMHITA & SIDDHANTA">SAMHITA & SIDDHANTA</option>
+              <option value="RACHANA">RACHANA</option>
+              <option value="KRIYA">KRIYA</option>
+              <option value="DG">DG</option>
+              <option value="RSBK">RSBK</option>
+              <option value="AGADA">AGADA</option>
+              <option value="ROGA NIDANA">ROGA NIDANA</option>
+              <option value="SW">SW</option>
+              <option value="KC">KC</option>
+              <option value="PK">PK</option>
+              <option value="SHALYA">SHALYA</option>
+              <option value="SHALAKYA">SHALAKYA</option>
+              <option value="PTSR">PTSR</option>
+              <option value="KB">KB</option>
+            </select>
+          </div>
+          <div>
             <label>College Name</label>
             <input type="text" id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
           </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="grid">
           <div>
-            <label>Month (info)</label>
-            <input type="text" id="month" value="September 2025" readonly>
+            <label>Select month</label>
+            <select id="monthSelect">
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9" selected>September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <div>
+            <label>Select year</label>
+            <select id="yearSelect">
+              <!-- years range 2020-2030 -->
+              <script>/* placeholder replaced in JS on load */</script>
+            </select>
           </div>
         </div>
 
@@ -148,16 +196,21 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
           <div class="small">Payslip for</div>
-          <div class="big" id="resHeader">Teacher — September 2025</div>
+          <div class="big" id="resHeader">Teacher — </div>
         </div>
         <div class="small">Generated: <span id="genDate"></span></div>
       </div>
 
-      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF/ESI are now entered as exact deduction amounts (₹) and applied directly.</div>
+      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF/ESI are entered as exact deduction amounts (₹) and applied directly.</div>
 
       <div style="height:12px"></div>
 
       <div>
+        <div class="result-line"><div class="small">College</div><div class="small" id="outCollege"></div></div>
+        <div class="result-line"><div class="small">Department</div><div class="small" id="outDept"></div></div>
+        <div class="result-line"><div class="small">Designation</div><div class="small" id="outDesig"></div></div>
+
+        <div class="result-line"><div class="small">Month / Year</div><div class="small" id="outMonthYear"></div></div>
         <div class="result-line"><div class="small">Total days in month</div><div class="small" id="outTotalDays"></div></div>
         <div class="result-line"><div class="small">Sundays (paid)</div><div class="small" id="outSundays"></div></div>
         <div class="result-line"><div class="small">Working days</div><div class="small" id="outWorkingDays"></div></div>
@@ -219,7 +272,7 @@ function renderStaffList(){
   list.forEach((s,idx)=>{
     const div = document.createElement('div'); div.className='staff-row';
     div.innerHTML = `<div style="flex:1"><strong>${escapeHtml(s.name||'Unnamed')}</strong><div class="small">${escapeHtml(s.desig||'')}</div></div>
-      <div style="width:140px;display:flex;gap:6px;justify-content:flex-end">
+      <div style="width:170px;display:flex;gap:6px;justify-content:flex-end">
         <button class='secondary' onclick='loadProfile(${idx})' style='padding:6px 8px'>Load</button>
         <button class='secondary' onclick='deleteProfile(${idx})' style='padding:6px 8px'>Delete</button>
       </div>`;
@@ -232,8 +285,9 @@ function saveStaffProfile(){
   const name = document.getElementById('staffName').value.trim();
   if(!name){alert('Please enter staff name before saving.'); return;}
   const desig = document.getElementById('staffDesig').value.trim();
+  const dept = document.getElementById('department').value;
   const profile = {
-    name, desig,
+    name, desig, dept,
     college: document.getElementById('college').value,
     totalDays: document.getElementById('totalDays').value,
     sundays: document.getElementById('sundays').value,
@@ -243,7 +297,9 @@ function saveStaffProfile(){
     shortfall: document.getElementById('shortfall').value,
     epfAmount: document.getElementById('epfAmount').value,
     esiAmount: document.getElementById('esiAmount').value,
-    profTaxAmt: document.getElementById('profTaxAmt').value
+    profTaxAmt: document.getElementById('profTaxAmt').value,
+    month: document.getElementById('monthSelect').value,
+    year: document.getElementById('yearSelect').value
   };
   const list = loadStaffProfiles();
   list.push(profile);
@@ -256,6 +312,7 @@ function loadProfile(idx){
   if(!p) return;
   document.getElementById('staffName').value = p.name||'';
   document.getElementById('staffDesig').value = p.desig||'';
+  document.getElementById('department').value = p.dept||document.getElementById('department').value;
   document.getElementById('college').value = p.college||document.getElementById('college').value;
   document.getElementById('totalDays').value = p.totalDays||document.getElementById('totalDays').value;
   document.getElementById('sundays').value = p.sundays||document.getElementById('sundays').value;
@@ -266,6 +323,8 @@ function loadProfile(idx){
   document.getElementById('epfAmount').value = p.epfAmount||document.getElementById('epfAmount').value;
   document.getElementById('esiAmount').value = p.esiAmount||document.getElementById('esiAmount').value;
   document.getElementById('profTaxAmt').value = p.profTaxAmt||document.getElementById('profTaxAmt').value;
+  document.getElementById('monthSelect').value = p.month||document.getElementById('monthSelect').value;
+  document.getElementById('yearSelect').value = p.year||document.getElementById('yearSelect').value;
   alert('Profile loaded into form. Click Calculate to update payslip.');
 }
 function deleteProfile(idx){
@@ -286,6 +345,13 @@ function compute(){
   const epfAmount = Number(document.getElementById('epfAmount').value)||0;
   const esiAmount = Number(document.getElementById('esiAmount').value)||0;
   const profTaxAmt = Number(document.getElementById('profTaxAmt').value)||0;
+  const staffName = document.getElementById('staffName').value || 'Teacher';
+  const desig = document.getElementById('staffDesig').value;
+  const dept = document.getElementById('department').value;
+  const monthVal = Number(document.getElementById('monthSelect').value);
+  const yearVal = Number(document.getElementById('yearSelect').value);
+
+  const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
 
   // derived
   const workingDays = Math.max(0, totalDays - sundays);
@@ -309,6 +375,10 @@ function compute(){
   const net = subtotal - totalDeductions;
 
   // populate outputs
+  document.getElementById('outCollege').innerText = college;
+  document.getElementById('outDept').innerText = dept;
+  document.getElementById('outDesig').innerText = desig;
+  document.getElementById('outMonthYear').innerText = monthNames[monthVal] + ' / ' + yearVal;
   document.getElementById('outTotalDays').innerText = totalDays;
   document.getElementById('outSundays').innerText = sundays;
   document.getElementById('outWorkingDays').innerText = workingDays;
@@ -327,14 +397,17 @@ function compute(){
   document.getElementById('outRounded').innerText = '₹ ' + formatMoney(Math.round(net*100)/100);
 
   document.getElementById('genDate').innerText = new Date().toLocaleString();
-  document.getElementById('resHeader').innerText = (document.getElementById('staffName').value||'Teacher') + ' — ' + document.getElementById('month').value;
+  document.getElementById('resHeader').innerText = staffName + ' — ' + monthNames[monthVal] + ' ' + yearVal;
   document.getElementById('resultsCard').style.display = 'block';
 }
 
 function resetForm(){
   if(!confirm('Reset form to defaults?')) return;
   document.getElementById('staffName').value = '';
-  document.getElementById('staffDesig').value = '';
+  document.getElementById('staffDesig').value = 'Assistant Professor';
+  document.getElementById('department').value = 'SAMHITA & SIDDHANTA';
+  document.getElementById('monthSelect').value = '9';
+  document.getElementById('yearSelect').value = '2025';
   document.getElementById('totalDays').value = 30;
   document.getElementById('sundays').value = 4;
   document.getElementById('hoursPerDay').value = 7;
@@ -354,8 +427,15 @@ function printPayslip(){
   window.print();
 }
 
-// initialize
-window.addEventListener('load',()=>{ renderStaffList(); compute(); });
+// initialize year select and staff list
+window.addEventListener('load',()=>{ 
+  const ys = document.getElementById('yearSelect');
+  const start = 2020, end = 2030;
+  for(let y=start;y<=end;y++){
+    const opt = document.createElement('option'); opt.value = y; opt.text = y; if(y===2025) opt.selected = true; ys.appendChild(opt);
+  }
+  renderStaffList(); compute();
+});
 
 </script>
 </body>
