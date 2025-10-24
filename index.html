@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ayurveda College Salary Calculator — September 2025</title>
+  <style>
+    :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:24px;color:#111}
+    .container{max-width:980px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(12,22,39,0.06);margin-bottom:16px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="number"], input[type="text"], select{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;gap:12px}
+    button{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;font-weight:600;cursor:pointer}
+    .secondary{background:#eef2ff;color:var(--accent);border:1px solid rgba(11,95,255,0.12)}
+    .result-line{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #ececf2}
+    .big{font-size:18px;font-weight:700}
+    .small{font-size:13px;color:var(--muted)}
+    footer{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
+    @media (max-width:760px){.grid{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
+    .help{font-size:13px;color:#334155;background:#f8fafc;padding:10px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
+      <div>
+        <h1>Ayurveda Salary Calculator — September 2025</h1>
+        <div class="muted">Single-file web tool to compute salary after unpaid hours & payroll deductions (Professional Tax, ESI, EPF).</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <form id="calcForm" onsubmit="return false;">
+        <div class="grid">
+          <div>
+            <label>College Name</label>
+            <input type="text" id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
+          </div>
+          <div>
+            <label>Month (info)</label>
+            <input type="text" id="month" value="September 2025" readonly>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="grid">
+          <div>
+            <label>Total days in month</label>
+            <input type="number" id="totalDays" value="30" min="28" required>
+          </div>
+          <div>
+            <label>Sundays in month</label>
+            <input type="number" id="sundays" value="4" min="0" required>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="grid">
+          <div>
+            <label>Working hours per day</label>
+            <input type="number" id="hoursPerDay" value="7" min="1" step="0.1" required>
+          </div>
+          <div>
+            <label>Gross monthly salary (₹)</label>
+            <input type="number" id="gross" value="57000" min="0" step="0.01" required>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="grid">
+          <div>
+            <label>Allowed CLs (days) — paid</label>
+            <input type="number" id="clDays" value="2" min="0" step="1">
+          </div>
+          <div>
+            <label>Shortfall hours (unpaid) — in addition to CLs</label>
+            <input type="number" id="shortfall" value="15" min="0" step="0.25">
+          </div>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <div class="grid-3">
+          <div>
+            <label>EPF (employee %) — applied on (subtotal)</label>
+            <input type="number" id="epfPercent" value="12" min="0" step="0.1">
+            <div class="small">Default 12% (editable). If you prefer fixed amount, enter percentage equivalent.</div>
+          </div>
+          <div>
+            <label>ESI (employee %) — applied on (subtotal)</label>
+            <input type="number" id="esiPercent" value="1.75" min="0" step="0.01">
+            <div class="small">Default 1.75% (editable)</div>
+          </div>
+          <div>
+            <label>Professional Tax (₹)</label>
+            <input type="number" id="profTaxAmt" value="200" min="0" step="0.01">
+            <div class="small">Enter fixed PT amount (state-dependent). Default ₹200.</div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button id="calcBtn" onclick="compute()">Calculate Salary</button>
+          <button class="secondary" onclick="resetForm()">Reset</button>
+          <button class="secondary" onclick="printPayslip()">Print / Save as PDF</button>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div class="small">Payslip for</div>
+          <div class="big" id="resHeader">Teacher — September 2025</div>
+        </div>
+        <div class="small">Generated: <span id="genDate"></span></div>
+      </div>
+
+      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF & ESI are calculated on the amount after unpaid-hour deduction (subtotal). You can edit EPF/ESI percentages and Professional Tax.</div>
+
+      <div style="height:12px"></div>
+
+      <div>
+        <div class="result-line"><div class="small">Total days in month</div><div class="small" id="outTotalDays"></div></div>
+        <div class="result-line"><div class="small">Sundays (paid)</div><div class="small" id="outSundays"></div></div>
+        <div class="result-line"><div class="small">Working days</div><div class="small" id="outWorkingDays"></div></div>
+        <div class="result-line"><div class="small">Working hours (monthly)</div><div class="small" id="outWorkingHours"></div></div>
+        <div class="result-line"><div class="small">Hourly rate (₹)</div><div class="small" id="outHourlyRate"></div></div>
+        <div class="result-line"><div class="small">Allowed CL hours (paid)</div><div class="small" id="outClHours"></div></div>
+        <div class="result-line"><div class="small">Shortfall hours (unpaid)</div><div class="small" id="outShortfall"></div></div>
+        <div class="result-line"><div class="small">Deduction for unpaid hours (₹)</div><div class="small" id="outUnpaidDeduct"></div></div>
+
+        <div style="height:8px"></div>
+        <div class="result-line"><div class="small">Gross salary (₹)</div><div class="small" id="outGross"></div></div>
+        <div class="result-line"><div class="small">Subtotal after unpaid-hour deduction (₹)</div><div class="small" id="outSubtotal"></div></div>
+
+        <div style="height:8px"></div>
+        <div class="result-line"><div class="small">EPF (₹)</div><div class="small" id="outEPF"></div></div>
+        <div class="result-line"><div class="small">ESI (₹)</div><div class="small" id="outESI"></div></div>
+        <div class="result-line"><div class="small">Professional Tax (₹)</div><div class="small" id="outPT"></div></div>
+
+        <div style="height:6px"></div>
+        <div class="result-line" style="border-bottom:2px solid #eef2ff"><div class="small">Total deductions (₹)</div><div class="small" id="outTotalDeductions"></div></div>
+
+        <div style="height:12px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Net salary to be disbursed</div>
+            <div class="big" id="outNet"></div>
+          </div>
+          <div style="text-align:right" class="small">Rounded: <span id="outRounded"></span></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer>Tip: Edit EPF/ESI percentages and Professional Tax to match your state/college rules.</footer>
+  </div>
+
+<script>
+function formatMoney(x){return Number(x).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function compute(){
+  // gather inputs
+  const college = document.getElementById('college').value;
+  const totalDays = Number(document.getElementById('totalDays').value)||30;
+  const sundays = Number(document.getElementById('sundays').value)||0;
+  const hoursPerDay = Number(document.getElementById('hoursPerDay').value)||7;
+  const gross = Number(document.getElementById('gross').value)||0;
+  const clDays = Number(document.getElementById('clDays').value)||0;
+  const shortfall = Number(document.getElementById('shortfall').value)||0;
+  const epfPercent = Number(document.getElementById('epfPercent').value)||0;
+  const esiPercent = Number(document.getElementById('esiPercent').value)||0;
+  const profTaxAmt = Number(document.getElementById('profTaxAmt').value)||0;
+
+  // derived
+  const workingDays = Math.max(0, totalDays - sundays);
+  const totalWorkingHours = workingDays * hoursPerDay;
+  const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
+
+  // Assumption: CLs are paid and the provided shortfall is the unpaid hours IN ADDITION TO CLs (as you clarified).
+  const clHours = clDays * hoursPerDay;
+  // unpaid hours = shortfall (as per clarified requirement)
+  const unpaidHours = shortfall;
+  const unpaidDeduction = unpaidHours * hourlyRate;
+
+  // subtotal after unpaid-hour deduction
+  const subtotal = gross - unpaidDeduction;
+
+  // payroll deductions applied on subtotal
+  const epf = subtotal * (epfPercent/100);
+  const esi = subtotal * (esiPercent/100);
+  const totalDeductions = epf + esi + profTaxAmt;
+
+  const net = subtotal - totalDeductions;
+
+  // populate outputs
+  document.getElementById('outTotalDays').innerText = totalDays;
+  document.getElementById('outSundays').innerText = sundays;
+  document.getElementById('outWorkingDays').innerText = workingDays;
+  document.getElementById('outWorkingHours').innerText = totalWorkingHours;
+  document.getElementById('outHourlyRate').innerText = formatMoney(hourlyRate);
+  document.getElementById('outClHours').innerText = clHours;
+  document.getElementById('outShortfall').innerText = unpaidHours;
+  document.getElementById('outUnpaidDeduct').innerText = formatMoney(unpaidDeduction);
+  document.getElementById('outGross').innerText = formatMoney(gross);
+  document.getElementById('outSubtotal').innerText = formatMoney(subtotal);
+  document.getElementById('outEPF').innerText = formatMoney(epf);
+  document.getElementById('outESI').innerText = formatMoney(esi);
+  document.getElementById('outPT').innerText = formatMoney(profTaxAmt);
+  document.getElementById('outTotalDeductions').innerText = formatMoney(totalDeductions);
+  document.getElementById('outNet').innerText = '₹ ' + formatMoney(net);
+  document.getElementById('outRounded').innerText = '₹ ' + formatMoney(Math.round(net*100)/100);
+
+  document.getElementById('genDate').innerText = new Date().toLocaleString();
+  document.getElementById('resHeader').innerText = college + ' — ' + document.getElementById('month').value;
+  document.getElementById('resultsCard').style.display = 'block';
+}
+
+function resetForm(){
+  if(!confirm('Reset form to defaults?')) return;
+  document.getElementById('totalDays').value = 30;
+  document.getElementById('sundays').value = 4;
+  document.getElementById('hoursPerDay').value = 7;
+  document.getElementById('gross').value = 57000;
+  document.getElementById('clDays').value = 2;
+  document.getElementById('shortfall').value = 15;
+  document.getElementById('epfPercent').value = 12;
+  document.getElementById('esiPercent').value = 1.75;
+  document.getElementById('profTaxAmt').value = 200;
+  document.getElementById('resultsCard').style.display = 'none';
+}
+
+function printPayslip(){
+  if(document.getElementById('resultsCard').style.display==='none'){
+    alert('Please calculate first.'); return;
+  }
+  window.print();
+}
+
+// compute default on load
+window.addEventListener('load',()=>{compute()});
+</script>
+</body>
+</html>
