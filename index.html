@@ -6,436 +6,238 @@
   <title>JAIN AGM AMCH SALARY CALCULATOR TOOL</title>
   <style>
     :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:24px;color:#111}
-    .container{max-width:980px;margin:0 auto}
-    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
-    h1{font-size:20px;margin:0}
-    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(12,22,39,0.06);margin-bottom:16px}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:18px;color:#111}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+    h1{font-size:18px;margin:0}
+    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 20px rgba(12,22,39,0.04);margin-bottom:12px}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type="number"], input[type="text"], select{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .muted{color:var(--muted);font-size:13px}
-    .row{display:flex;gap:12px}
-    button{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;font-weight:600;cursor:pointer}
+    input[type="number"], input[type="text"], select{width:100%;padding:8px;border:1px solid #e6e9ef;border-radius:8px;font-size:13px}
+    .row{display:flex;gap:8px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;font-weight:600;cursor:pointer}
     .secondary{background:#eef2ff;color:var(--accent);border:1px solid rgba(11,95,255,0.12)}
-    .result-line{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #ececf2}
-    .big{font-size:18px;font-weight:700}
-    .small{font-size:13px;color:var(--muted)}
-    footer{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
-    @media (max-width:760px){.grid{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
-    .help{font-size:13px;color:#334155;background:#f8fafc;padding:10px;border-radius:8px}
-    .staff-list{max-height:160px;overflow:auto;border:1px solid #eef2ff;padding:8px;border-radius:8px}
-    .staff-row{display:flex;justify-content:space-between;gap:8px;padding:6px;border-bottom:1px dashed #f1f5f9}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border:1px solid #eef2ff;padding:6px;text-align:left}
+    th{background:#fbfdff}
+    .small{font-size:12px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .narrow{width:110px}
+    .action-btn{padding:6px 8px;border-radius:6px;border:0;background:#fff;color:var(--accent);border:1px solid rgba(11,95,255,0.12);cursor:pointer}
+    @media (max-width:980px){.narrow{width:auto}}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
+      <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
       <div>
         <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
-        <div class="muted">Single-file web tool: unpaid hours + direct deduction amounts for EPF/ESI + Professional Tax. Save staff profiles for reuse.</div>
+        <div class="small muted">Enter multiple staff rows, compute full salary sheet and download as CSV / print.</div>
       </div>
     </header>
 
     <div class="card">
-      <form id="calcForm" onsubmit="return false;">
-        <div class="grid">
-          <div>
-            <label>Staff name</label>
-            <input type="text" id="staffName" placeholder="e.g. Dr. Rahul Sharma">
-          </div>
-          <div>
-            <label>Designation</label>
-            <select id="staffDesig">
-              <option value="Assistant Professor">Assistant Prof</option>
-              <option value="Associate Professor">Associate Prof</option>
-              <option value="Professor">Professor</option>
-            </select>
-          </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <label>College</label>
+          <input id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="grid">
-          <div>
-            <label>Department</label>
-            <select id="department">
-              <option value="SAMHITA & SIDDHANTA">SAMHITA & SIDDHANTA</option>
-              <option value="RACHANA">RACHANA</option>
-              <option value="KRIYA">KRIYA</option>
-              <option value="DG">DG</option>
-              <option value="RSBK">RSBK</option>
-              <option value="AGADA">AGADA</option>
-              <option value="ROGA NIDANA">ROGA NIDANA</option>
-              <option value="SW">SW</option>
-              <option value="KC">KC</option>
-              <option value="PK">PK</option>
-              <option value="SHALYA">SHALYA</option>
-              <option value="SHALAKYA">SHALAKYA</option>
-              <option value="PTSR">PTSR</option>
-              <option value="KB">KB</option>
-            </select>
-          </div>
-          <div>
-            <label>College Name</label>
-            <input type="text" id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
-          </div>
+        <div style="width:160px">
+          <label>Month</label>
+          <select id="monthSelect"> 
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option><option value="9" selected>September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="grid">
-          <div>
-            <label>Select month</label>
-            <select id="monthSelect">
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9" selected>September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-          </div>
-          <div>
-            <label>Select year</label>
-            <select id="yearSelect">
-              <!-- years range 2020-2030 -->
-              <script>/* placeholder replaced in JS on load */</script>
-            </select>
-          </div>
+        <div style="width:120px">
+          <label>Year</label>
+          <select id="yearSelect"></select>
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="grid">
-          <div>
-            <label>Total days in month</label>
-            <input type="number" id="totalDays" value="30" min="28" required>
-          </div>
-          <div>
-            <label>Sundays in month</label>
-            <input type="number" id="sundays" value="4" min="0" required>
-          </div>
+        <div style="width:120px">
+          <label>Total days</label>
+          <input type="number" id="totalDays" value="30">
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="grid">
-          <div>
-            <label>Working hours per day</label>
-            <input type="number" id="hoursPerDay" value="7" min="1" step="0.1" required>
-          </div>
-          <div>
-            <label>Gross monthly salary (₹)</label>
-            <input type="number" id="gross" value="57000" min="0" step="0.01" required>
-          </div>
+        <div style="width:120px">
+          <label>Sundays</label>
+          <input type="number" id="sundays" value="4">
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="grid">
-          <div>
-            <label>Allowed CLs (days) — paid</label>
-            <input type="number" id="clDays" value="2" min="0" step="1">
-          </div>
-          <div>
-            <label>Shortfall hours (unpaid) — in addition to CLs</label>
-            <input type="number" id="shortfall" value="15" min="0" step="0.25">
-          </div>
+        <div style="width:140px">
+          <label>Hours / day</label>
+          <input type="number" id="hoursPerDay" value="7" step="0.1">
         </div>
-
-        <div style="height:14px"></div>
-
-        <div class="grid-3">
-          <div>
-            <label>EPF — exact amount to deduct (₹)</label>
-            <input type="number" id="epfAmount" value="684" min="0" step="0.01">
-            <div class="small">Enter the exact employee EPF deduction amount (e.g. ₹684). Leave 0 if not applicable.</div>
-          </div>
-          <div>
-            <label>ESI — exact amount to deduct (₹)</label>
-            <input type="number" id="esiAmount" value="100" min="0" step="0.01">
-            <div class="small">Enter exact ESI amount. Leave 0 if not applicable.</div>
-          </div>
-          <div>
-            <label>Professional Tax (₹)</label>
-            <input type="number" id="profTaxAmt" value="200" min="0" step="0.01">
-            <div class="small">Enter fixed PT amount (state-dependent). Default ₹200.</div>
-          </div>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button id="calcBtn" onclick="compute()">Calculate Salary</button>
-          <button class="secondary" onclick="resetForm()">Reset</button>
-          <button class="secondary" onclick="printPayslip()">Print / Save as PDF</button>
-          <button class="secondary" onclick="saveStaffProfile()">Save Staff Profile</button>
-        </div>
-
-      </form>
-
-      <div style="height:12px"></div>
-
-      <div>
-        <label>Saved staff profiles</label>
-        <div class="staff-list" id="staffList"></div>
       </div>
 
+      <div style="height:10px"></div>
+      <div class="controls">
+        <button onclick="addRow()">Add Staff Row</button>
+        <button class="secondary" onclick="addSampleRows()">Add Sample 5 Rows</button>
+        <button onclick="calculateAll()">Calculate All</button>
+        <button class="secondary" onclick="downloadCSV()">Download CSV</button>
+        <button class="secondary" onclick="printSheet()">Print Sheet</button>
+        <button class="secondary" onclick="clearRows()">Clear All Rows</button>
+      </div>
     </div>
 
-    <div class="card" id="resultsCard" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div>
-          <div class="small">Payslip for</div>
-          <div class="big" id="resHeader">Teacher — </div>
-        </div>
-        <div class="small">Generated: <span id="genDate"></span></div>
+    <div class="card">
+      <div style="overflow:auto">
+        <table id="staffTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Designation</th>
+              <th>Department</th>
+              <th class="narrow">Gross (₹)</th>
+              <th class="narrow">CL days</th>
+              <th class="narrow">Shortfall hrs</th>
+              <th class="narrow">EPF ₹</th>
+              <th class="narrow">ESI ₹</th>
+              <th class="narrow">PT ₹</th>
+              <th class="narrow">Unpaid Deduct (₹)</th>
+              <th class="narrow">Total Deductions (₹)</th>
+              <th class="narrow">Net Pay (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffBody">
+            <!-- rows inserted here -->
+          </tbody>
+        </table>
       </div>
-
-      <div class="help">Assumptions: Monthly gross covers Sundays and holidays. Allowed CL days are paid separately. Shortfall hours input is the unpaid hours beyond CL. EPF/ESI are entered as exact deduction amounts (₹) and applied directly.</div>
-
-      <div style="height:12px"></div>
-
-      <div>
-        <div class="result-line"><div class="small">College</div><div class="small" id="outCollege"></div></div>
-        <div class="result-line"><div class="small">Department</div><div class="small" id="outDept"></div></div>
-        <div class="result-line"><div class="small">Designation</div><div class="small" id="outDesig"></div></div>
-
-        <div class="result-line"><div class="small">Month / Year</div><div class="small" id="outMonthYear"></div></div>
-        <div class="result-line"><div class="small">Total days in month</div><div class="small" id="outTotalDays"></div></div>
-        <div class="result-line"><div class="small">Sundays (paid)</div><div class="small" id="outSundays"></div></div>
-        <div class="result-line"><div class="small">Working days</div><div class="small" id="outWorkingDays"></div></div>
-        <div class="result-line"><div class="small">Working hours (monthly)</div><div class="small" id="outWorkingHours"></div></div>
-        <div class="result-line"><div class="small">Hourly rate (₹)</div><div class="small" id="outHourlyRate"></div></div>
-        <div class="result-line"><div class="small">Allowed CL hours (paid)</div><div class="small" id="outClHours"></div></div>
-        <div class="result-line"><div class="small">Shortfall hours (unpaid)</div><div class="small" id="outShortfall"></div></div>
-        <div class="result-line"><div class="small">Deduction for unpaid hours (₹)</div><div class="small" id="outUnpaidDeduct"></div></div>
-
-        <div style="height:8px"></div>
-        <div class="result-line"><div class="small">Gross salary (₹)</div><div class="small" id="outGross"></div></div>
-        <div class="result-line"><div class="small">Subtotal after unpaid-hour deduction (₹)</div><div class="small" id="outSubtotal"></div></div>
-
-        <div style="height:8px"></div>
-        <div class="result-line"><div class="small">EPF (₹)</div><div class="small" id="outEPF"></div></div>
-        <div class="result-line"><div class="small">ESI (₹)</div><div class="small" id="outESI"></div></div>
-        <div class="result-line"><div class="small">Professional Tax (₹)</div><div class="small" id="outPT"></div></div>
-
-        <div style="height:6px"></div>
-        <div class="result-line" style="border-bottom:2px solid #eef2ff"><div class="small">Total deductions (₹)</div><div class="small" id="outTotalDeductions"></div></div>
-
-        <div style="height:12px"></div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div class="small">Net salary to be disbursed</div>
-            <div class="big" id="outNet"></div>
-          </div>
-          <div style="text-align:right" class="small">Rounded: <span id="outRounded"></span></div>
-        </div>
-
-      </div>
-
     </div>
 
-    <footer>Tip: Staff profiles are stored locally in your browser (LocalStorage). They will remain available on the same browser/device unless you clear site data.</footer>
+    <div class="card">
+      <div class="small muted">Notes: Monthly salary covers Sundays/holidays. CLs counted as paid (not deducted). Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Download saves the computed sheet including results.</div>
+    </div>
+
+    <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use CSV export to save records.</footer>
   </div>
 
 <script>
-// Utilities
-function formatMoney(x){return Number(x).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+// helper
+function $(id){return document.getElementById(id)}
+function formatMoney(x){return Number(x||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 
-// Staff profile management using localStorage
-const STORAGE_KEY = 'ayurveda_salary_staff_profiles_v1';
-function loadStaffProfiles(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){return []}
-}
-function saveStaffProfiles(list){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  renderStaffList();
-}
-function renderStaffList(){
-  const container = document.getElementById('staffList');
-  const list = loadStaffProfiles();
-  container.innerHTML = '';
-  if(list.length===0){container.innerHTML = '<div class="small">No saved profiles. Use "Save Staff Profile" to add.</div>'; return}
-  list.forEach((s,idx)=>{
-    const div = document.createElement('div'); div.className='staff-row';
-    div.innerHTML = `<div style="flex:1"><strong>${escapeHtml(s.name||'Unnamed')}</strong><div class="small">${escapeHtml(s.desig||'')}</div></div>
-      <div style="width:170px;display:flex;gap:6px;justify-content:flex-end">
-        <button class='secondary' onclick='loadProfile(${idx})' style='padding:6px 8px'>Load</button>
-        <button class='secondary' onclick='deleteProfile(${idx})' style='padding:6px 8px'>Delete</button>
-      </div>`;
-    container.appendChild(div);
-  });
-}
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];}); }
+// initialize year select
+(function initYears(){const ys=$('yearSelect');for(let y=2020;y<=2030;y++){const o=document.createElement('option');o.value=y;o.text=y;if(y===2025)o.selected=true;ys.appendChild(o)}})();
 
-function saveStaffProfile(){
-  const name = document.getElementById('staffName').value.trim();
-  if(!name){alert('Please enter staff name before saving.'); return;}
-  const desig = document.getElementById('staffDesig').value.trim();
-  const dept = document.getElementById('department').value;
-  const profile = {
-    name, desig, dept,
-    college: document.getElementById('college').value,
-    totalDays: document.getElementById('totalDays').value,
-    sundays: document.getElementById('sundays').value,
-    hoursPerDay: document.getElementById('hoursPerDay').value,
-    gross: document.getElementById('gross').value,
-    clDays: document.getElementById('clDays').value,
-    shortfall: document.getElementById('shortfall').value,
-    epfAmount: document.getElementById('epfAmount').value,
-    esiAmount: document.getElementById('esiAmount').value,
-    profTaxAmt: document.getElementById('profTaxAmt').value,
-    month: document.getElementById('monthSelect').value,
-    year: document.getElementById('yearSelect').value
-  };
-  const list = loadStaffProfiles();
-  list.push(profile);
-  saveStaffProfiles(list);
-  alert('Profile saved locally. Use Load to prefill next month.');
-}
-function loadProfile(idx){
-  const list = loadStaffProfiles();
-  const p = list[idx];
-  if(!p) return;
-  document.getElementById('staffName').value = p.name||'';
-  document.getElementById('staffDesig').value = p.desig||'';
-  document.getElementById('department').value = p.dept||document.getElementById('department').value;
-  document.getElementById('college').value = p.college||document.getElementById('college').value;
-  document.getElementById('totalDays').value = p.totalDays||document.getElementById('totalDays').value;
-  document.getElementById('sundays').value = p.sundays||document.getElementById('sundays').value;
-  document.getElementById('hoursPerDay').value = p.hoursPerDay||document.getElementById('hoursPerDay').value;
-  document.getElementById('gross').value = p.gross||document.getElementById('gross').value;
-  document.getElementById('clDays').value = p.clDays||document.getElementById('clDays').value;
-  document.getElementById('shortfall').value = p.shortfall||document.getElementById('shortfall').value;
-  document.getElementById('epfAmount').value = p.epfAmount||document.getElementById('epfAmount').value;
-  document.getElementById('esiAmount').value = p.esiAmount||document.getElementById('esiAmount').value;
-  document.getElementById('profTaxAmt').value = p.profTaxAmt||document.getElementById('profTaxAmt').value;
-  document.getElementById('monthSelect').value = p.month||document.getElementById('monthSelect').value;
-  document.getElementById('yearSelect').value = p.year||document.getElementById('yearSelect').value;
-  alert('Profile loaded into form. Click Calculate to update payslip.');
-}
-function deleteProfile(idx){
-  if(!confirm('Delete this saved profile?')) return;
-  const list = loadStaffProfiles(); list.splice(idx,1); saveStaffProfiles(list);
+const DEPARTMENTS = ["SAMHITA & SIDDHANTA","RACHANA","KRIYA","DG","RSBK","AGADA","ROGA NIDANA","SW","KC","PK","SHALYA","SHALAKYA","PTSR","KB"];
+const DESIGNATIONS = [{v:'Assistant Professor',t:'Assistant Prof'},{v:'Associate Professor',t:'Associate Prof'},{v:'Professor',t:'Professor'}];
+
+let rowIdCounter = 0;
+function createSelect(options, selected){const s=document.createElement('select');options.forEach(opt=>{const o=document.createElement('option');o.value=opt.value||opt; o.text=opt.text||opt; if(selected && (o.value==selected||o.text==selected)) o.selected=true; s.appendChild(o)});return s}
+
+function addRow(prefill={}){
+  const tbody = $('staffBody');
+  const tr = document.createElement('tr');
+  const id = ++rowIdCounter;
+  tr.dataset.rowid = id;
+
+  tr.innerHTML = `
+    <td>${id}</td>
+    <td><input type="text" class="inp name" value="${(prefill.name||'').replace(/"/g,'&quot;')}"></td>
+    <td></td>
+    <td></td>
+    <td><input type="number" class="inp gross" value="${prefill.gross||57000}"></td>
+    <td><input type="number" class="inp clDays" value="${prefill.clDays||2}" min="0"></td>
+    <td><input type="number" class="inp shortfall" value="${prefill.shortfall||15}" step="0.25" min="0"></td>
+    <td><input type="number" class="inp epf" value="${prefill.epfAmount||684}" step="0.01" min="0"></td>
+    <td><input type="number" class="inp esi" value="${prefill.esiAmount||100}" step="0.01" min="0"></td>
+    <td><input type="number" class="inp pt" value="${prefill.profTaxAmt||200}" step="0.01" min="0"></td>
+    <td class="out unpaid">-</td>
+    <td class="out totalDeduct">-</td>
+    <td class="out net">-</td>
+    <td style="white-space:nowrap"><button class="action-btn" onclick="calcRow(this)">Calc</button> <button class="action-btn" onclick="removeRow(this)">Remove</button></td>
+  `;
+
+  // insert designations select
+  const desTd = tr.children[2];
+  const desSel = document.createElement('select');
+  DESIGNATIONS.forEach(d=>{const o=document.createElement('option');o.value=d.v;o.text=d.t; if(prefill.desig && prefill.desig==d.v) o.selected=true; desSel.appendChild(o)});
+  desTd.appendChild(desSel);
+
+  // insert dept select
+  const deptTd = tr.children[3];
+  const deptSel = document.createElement('select');
+  DEPARTMENTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.text=d; if(prefill.dept && prefill.dept==d) o.selected=true; deptSel.appendChild(o)});
+  deptTd.appendChild(deptSel);
+
+  tbody.appendChild(tr);
 }
 
-// Core computation
-function compute(){
-  // gather inputs
-  const college = document.getElementById('college').value;
-  const totalDays = Number(document.getElementById('totalDays').value)||30;
-  const sundays = Number(document.getElementById('sundays').value)||0;
-  const hoursPerDay = Number(document.getElementById('hoursPerDay').value)||7;
-  const gross = Number(document.getElementById('gross').value)||0;
-  const clDays = Number(document.getElementById('clDays').value)||0;
-  const shortfall = Number(document.getElementById('shortfall').value)||0;
-  const epfAmount = Number(document.getElementById('epfAmount').value)||0;
-  const esiAmount = Number(document.getElementById('esiAmount').value)||0;
-  const profTaxAmt = Number(document.getElementById('profTaxAmt').value)||0;
-  const staffName = document.getElementById('staffName').value || 'Teacher';
-  const desig = document.getElementById('staffDesig').value;
-  const dept = document.getElementById('department').value;
-  const monthVal = Number(document.getElementById('monthSelect').value);
-  const yearVal = Number(document.getElementById('yearSelect').value);
+function removeRow(btn){ if(!confirm('Remove this row?')) return; const tr = btn.closest('tr'); tr.parentNode.removeChild(tr); }
+function clearRows(){ if(!confirm('Clear all rows?')) return; $('staffBody').innerHTML=''; rowIdCounter=0; }
 
-  const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+function calcRow(btn){ const tr = btn.closest('tr'); computeForTr(tr); }
 
-  // derived
+function computeForTr(tr){
+  const totalDays = Number($('totalDays').value)||30;
+  const sundays = Number($('sundays').value)||0;
+  const hoursPerDay = Number($('hoursPerDay').value)||7;
+  const gross = Number(tr.querySelector('.gross').value)||0;
+  const clDays = Number(tr.querySelector('.clDays').value)||0;
+  const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+  const epf = Number(tr.querySelector('.epf').value)||0;
+  const esi = Number(tr.querySelector('.esi').value)||0;
+  const pt = Number(tr.querySelector('.pt').value)||0;
+
   const workingDays = Math.max(0, totalDays - sundays);
   const totalWorkingHours = workingDays * hoursPerDay;
   const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
 
-  // CLs paid
-  const clHours = clDays * hoursPerDay;
-  // unpaid hours = shortfall (as per clarified requirement)
-  const unpaidHours = shortfall;
-  const unpaidDeduction = unpaidHours * hourlyRate;
-
-  // subtotal after unpaid-hour deduction
-  const subtotal = gross - unpaidDeduction;
-
-  // payroll deductions: user-entered amounts (EPF/ESI) applied directly
-  const epf = epfAmount;
-  const esi = esiAmount;
-  const totalDeductions = epf + esi + profTaxAmt;
-
+  const unpaidDeduct = shortfall * hourlyRate;
+  const subtotal = gross - unpaidDeduct;
+  const totalDeductions = Number(epf)+Number(esi)+Number(pt);
   const net = subtotal - totalDeductions;
 
-  // populate outputs
-  document.getElementById('outCollege').innerText = college;
-  document.getElementById('outDept').innerText = dept;
-  document.getElementById('outDesig').innerText = desig;
-  document.getElementById('outMonthYear').innerText = monthNames[monthVal] + ' / ' + yearVal;
-  document.getElementById('outTotalDays').innerText = totalDays;
-  document.getElementById('outSundays').innerText = sundays;
-  document.getElementById('outWorkingDays').innerText = workingDays;
-  document.getElementById('outWorkingHours').innerText = totalWorkingHours;
-  document.getElementById('outHourlyRate').innerText = formatMoney(hourlyRate);
-  document.getElementById('outClHours').innerText = clHours;
-  document.getElementById('outShortfall').innerText = unpaidHours;
-  document.getElementById('outUnpaidDeduct').innerText = formatMoney(unpaidDeduction);
-  document.getElementById('outGross').innerText = formatMoney(gross);
-  document.getElementById('outSubtotal').innerText = formatMoney(subtotal);
-  document.getElementById('outEPF').innerText = formatMoney(epf);
-  document.getElementById('outESI').innerText = formatMoney(esi);
-  document.getElementById('outPT').innerText = formatMoney(profTaxAmt);
-  document.getElementById('outTotalDeductions').innerText = formatMoney(totalDeductions);
-  document.getElementById('outNet').innerText = '₹ ' + formatMoney(net);
-  document.getElementById('outRounded').innerText = '₹ ' + formatMoney(Math.round(net*100)/100);
-
-  document.getElementById('genDate').innerText = new Date().toLocaleString();
-  document.getElementById('resHeader').innerText = staffName + ' — ' + monthNames[monthVal] + ' ' + yearVal;
-  document.getElementById('resultsCard').style.display = 'block';
+  tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
+  tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
+  tr.querySelector('.out.net').innerText = formatMoney(net);
 }
 
-function resetForm(){
-  if(!confirm('Reset form to defaults?')) return;
-  document.getElementById('staffName').value = '';
-  document.getElementById('staffDesig').value = 'Assistant Professor';
-  document.getElementById('department').value = 'SAMHITA & SIDDHANTA';
-  document.getElementById('monthSelect').value = '9';
-  document.getElementById('yearSelect').value = '2025';
-  document.getElementById('totalDays').value = 30;
-  document.getElementById('sundays').value = 4;
-  document.getElementById('hoursPerDay').value = 7;
-  document.getElementById('gross').value = 57000;
-  document.getElementById('clDays').value = 2;
-  document.getElementById('shortfall').value = 15;
-  document.getElementById('epfAmount').value = 684;
-  document.getElementById('esiAmount').value = 100;
-  document.getElementById('profTaxAmt').value = 200;
-  document.getElementById('resultsCard').style.display = 'none';
+function calculateAll(){
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  rows.forEach(tr=>computeForTr(tr));
+  alert('Calculated '+rows.length+' rows. You can now Download CSV or Print the sheet.');
 }
 
-function printPayslip(){
-  if(document.getElementById('resultsCard').style.display==='none'){
-    alert('Please calculate first.'); return;
-  }
-  window.print();
+function downloadCSV(){
+  calculateAll();
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  if(rows.length===0){alert('No rows to export'); return}
+  const header = ['Sr','Name','Designation','Department','Gross','CL_days','Shortfall_hrs','Unpaid_Deduction','EPF','ESI','PT','Total_Deductions','Net_Pay'];
+  const data = [header];
+  rows.forEach((tr,idx)=>{
+    const name = tr.querySelector('.name').value||'';
+    const desig = tr.querySelector('select').value||'';
+    const dept = tr.querySelectorAll('select')[1].value||'';
+    const gross = tr.querySelector('.gross').value||'';
+    const clDays = tr.querySelector('.clDays').value||'';
+    const shortfall = tr.querySelector('.shortfall').value||'';
+    const unpaid = tr.querySelector('.out.unpaid').innerText||'';
+    const epf = tr.querySelector('.epf').value||'';
+    const esi = tr.querySelector('.esi').value||'';
+    const pt = tr.querySelector('.pt').value||'';
+    const totalDeduct = tr.querySelector('.out.totalDeduct').innerText||'';
+    const net = tr.querySelector('.out.net').innerText||'';
+    data.push([idx+1, name, desig, dept, gross, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
+  });
+  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('
+');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+$('monthSelect').value+'_'+$('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-// initialize year select and staff list
-window.addEventListener('load',()=>{ 
-  const ys = document.getElementById('yearSelect');
-  const start = 2020, end = 2030;
-  for(let y=start;y<=end;y++){
-    const opt = document.createElement('option'); opt.value = y; opt.text = y; if(y===2025) opt.selected = true; ys.appendChild(opt);
-  }
-  renderStaffList(); compute();
-});
+function printSheet(){ calculateAll(); window.print(); }
+
+function addSampleRows(){ for(let i=0;i<5;i++){ addRow({name:'Dr. Example '+(i+1)}); } }
+
+// auto-add one empty row on load
+window.addEventListener('load',()=>{ addRow(); });
 
 </script>
 </body>
