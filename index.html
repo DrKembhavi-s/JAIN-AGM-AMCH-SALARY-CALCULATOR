@@ -26,6 +26,10 @@
     .action-btn{padding:6px 8px;border-radius:6px;border:0;background:#fff;color:var(--accent);border:1px solid rgba(11,95,255,0.12);cursor:pointer}
     @media (max-width:980px){.narrow{width:auto}}
   </style>
+  <!-- SheetJS for XLSX export, html2canvas + jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -33,7 +37,7 @@
       <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
       <div>
         <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
-        <div class="small muted">Enter multiple staff rows, compute full salary sheet and download as CSV / print.</div>
+        <div class="small muted">Enter multiple staff rows, compute full salary sheet and export as CSV, formatted Excel (.xlsx) or PDF.</div>
       </div>
     </header>
 
@@ -76,6 +80,8 @@
         <button type="button" class="secondary" onclick="addSampleRows()">Add Sample 5 Rows</button>
         <button type="button" onclick="calculateAll()">Calculate All</button>
         <button type="button" class="secondary" onclick="downloadCSV()">Download CSV</button>
+        <button type="button" class="secondary" onclick="exportXLSX()">Export Excel (.xlsx)</button>
+        <button type="button" class="secondary" onclick="exportPDF()">Export PDF</button>
         <button type="button" class="secondary" onclick="printSheet()">Print Sheet</button>
         <button type="button" class="secondary" onclick="clearRows()">Clear All Rows</button>
       </div>
@@ -110,10 +116,10 @@
     </div>
 
     <div class="card">
-      <div class="small muted">Notes: Monthly salary covers Sundays/holidays. CLs counted as paid (not deducted). Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Download saves the computed sheet including results.</div>
+      <div class="small muted">Notes: Monthly salary covers Sundays/holidays. CLs counted as paid (not deducted). Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
     </div>
 
-    <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use CSV export to save records.</footer>
+    <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use exports to save records.</footer>
   </div>
 
 <script>
@@ -206,7 +212,7 @@ function computeForTr(tr){
 function calculateAll(){
   const rows = Array.from(document.querySelectorAll('#staffBody tr'));
   rows.forEach(tr=>computeForTr(tr));
-  alert('Calculated '+rows.length+' rows. You can now Download CSV or Print the sheet.');
+  alert('Calculated '+rows.length+' rows. You can now Download CSV, Export Excel or Export PDF.');
 }
 
 function downloadCSV(){
@@ -236,12 +242,156 @@ function downloadCSV(){
   const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+$('monthSelect').value+'_'+$('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+function exportXLSX(){
+  calculateAll();
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  if(rows.length===0){alert('No rows to export'); return}
+  const aoa = [];
+  // header row with friendly names
+  aoa.push(['Sr','Name','Designation','Department','Gross (₹)','CL days','Shortfall (hrs)','Unpaid Deduction (₹)','EPF (₹)','ESI (₹)','PT (₹)','Total Deductions (₹)','Net Pay (₹)']);
+  rows.forEach((tr,idx)=>{
+    const name = tr.querySelector('.name').value||'';
+    const desig = tr.querySelectorAll('select')[0].value||'';
+    const dept = tr.querySelectorAll('select')[1].value||'';
+    const gross = Number(tr.querySelector('.gross').value)||0;
+    const clDays = Number(tr.querySelector('.clDays').value)||0;
+    const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+    const unpaid = tr.querySelector('.out.unpaid').innerText.replace(/,/g, '')||0;
+    const epf = Number(tr.querySelector('.epf').value)||0;
+    const esi = Number(tr.querySelector('.esi').value)||0;
+    const pt = Number(tr.querySelector('.pt').value)||0;
+    const totalDeduct = tr.querySelector('.out.totalDeduct').innerText.replace(/,/g, '')||0;
+    const net = tr.querySelector('.out.net').innerText.replace(/,/g, '')||0;
+    aoa.push([idx+1,name,desig,dept,gross,clDays,shortfall,Number(unpaid),epf,esi,pt,Number(totalDeduct),Number(net)]);
+  });
+
+  // create workbook and worksheet
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // set column widths for readability
+  const wscols = [{wpx:30},{wpx:140},{wpx:110},{wpx:110},{wpx:90},{wpx:60},{wpx:80},{wpx:110},{wpx:90},{wpx:90},{wpx:90},{wpx:120},{wpx:110}];
+  ws['!cols'] = wscols;
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'SalarySheet');
+
+  // add header info sheetProps
+  const month = $('monthSelect').options[$('monthSelect').selectedIndex].text;
+  const year = $('yearSelect').value;
+  const college = $('college').value;
+  // add workbook properties
+  wb.Props = {Title: 'Salary Sheet - '+month+' '+year, Subject: college, Author: 'JAIN AGM AMCH'};
+
+  // write file
+  const fileName = `salary_sheet_${month}_${year}.xlsx`;
+  XLSX.writeFile(wb, fileName, {bookType:'xlsx', type:'binary'});
+}
+
+async function exportPDF(){
+  calculateAll();
+  const table = document.getElementById('staffTable');
+  const month = $('monthSelect').options[$('monthSelect').selectedIndex].text;
+  const year = $('yearSelect').value;
+  const college = $('college').value;
+
+  // build a printable clone with header
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '12px';
+  wrapper.style.background = '#fff';
+  wrapper.style.color = '#111';
+  wrapper.style.width = '100%';
+  const header = document.createElement('div');
+  header.innerHTML = `<h2 style="margin:0">${college}</h2><div style="margin-bottom:8px">Salary Sheet — ${month} ${year}</div>`;
+  wrapper.appendChild(header);
+
+  // clone table and adjust styles for canvas
+  const tblClone = table.cloneNode(true);
+  tblClone.style.borderCollapse = 'collapse';
+  tblClone.querySelectorAll('th,td').forEach(cell=>{ cell.style.border = '1px solid #ccc'; cell.style.padding='6px'; cell.style.fontSize='10px'; });
+  wrapper.appendChild(tblClone);
+
+  document.body.appendChild(wrapper);
+  try{
+    const canvas = await html2canvas(wrapper, {scale:2});
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l','pt','a4'); // landscape A4
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    // fit image to PDF (maintain aspect)
+    const imgProps = { width: canvas.width, height: canvas.height };
+    const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
+    const imgWidth = imgProps.width * ratio;
+    const imgHeight = imgProps.height * ratio;
+
+    let position = 20;
+    pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, position, imgWidth, imgHeight);
+
+    // handle multi-page if content taller than page
+    if(imgHeight > pdfHeight - 40){
+      // calculate number of pages
+      const totalPages = Math.ceil(imgHeight / (pdfHeight - 40));
+      for(let i=1;i<totalPages;i++){
+        pdf.addPage();
+        const sx = 0; // source y offset not supported here, instead render full image scaled and translated
+        const yPos = (-(pdfHeight-40)*i) + position;
+        pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, yPos, imgWidth, imgHeight);
+      }
+    }
+
+    const fileName = `salary_sheet_${month}_${year}.pdf`;
+    pdf.save(fileName);
+    alert('PDF generated: '+fileName);
+  }catch(err){ console.error('exportPDF error', err); alert('Failed to generate PDF. See console.'); }
+  wrapper.remove();
+}
+
 function printSheet(){ calculateAll(); window.print(); }
 
 function addSampleRows(){ for(let i=0;i<5;i++){ addRow({name:'Dr. Example '+(i+1)}); } }
 
+function removeRow(btn){ if(!confirm('Remove this row?')) return; const tr = btn.closest('tr'); tr.parentNode.removeChild(tr); }
+
+function clearRows(){ if(!confirm('Clear all rows?')) return; $('staffBody').innerHTML=''; rowIdCounter=0; }
+
+// exported earlier compute functions (kept for compatibility)
+function calcRow(btn){ const tr = btn.closest('tr'); computeForTr(tr); }
+
+function computeForTr(tr){
+  try{
+    const totalDays = Number($('totalDays').value)||30;
+    const sundays = Number($('sundays').value)||0;
+    const hoursPerDay = Number($('hoursPerDay').value)||7;
+    const gross = Number(tr.querySelector('.gross').value)||0;
+    const clDays = Number(tr.querySelector('.clDays').value)||0;
+    const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+    const epf = Number(tr.querySelector('.epf').value)||0;
+    const esi = Number(tr.querySelector('.esi').value)||0;
+    const pt = Number(tr.querySelector('.pt').value)||0;
+
+    const workingDays = Math.max(0, totalDays - sundays);
+    const totalWorkingHours = workingDays * hoursPerDay;
+    const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
+
+    const unpaidDeduct = shortfall * hourlyRate;
+    const subtotal = gross - unpaidDeduct;
+    const totalDeductions = Number(epf)+Number(esi)+Number(pt);
+    const net = subtotal - totalDeductions;
+
+    tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
+    tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
+    tr.querySelector('.out.net').innerText = formatMoney(net);
+  }catch(err){ console.error('computeForTr error', err); alert('Error computing row — see console.'); }
+}
+
+function calculateAll(){
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  rows.forEach(tr=>computeForTr(tr));
+  alert('Calculated '+rows.length+' rows. You can now Download CSV, Export Excel or Export PDF.');
+}
+
 // auto-add one empty row on load
-document.addEventListener('DOMContentLoaded',()=>{ addRow(); });
+window.addEventListener('DOMContentLoaded',()=>{ addRow(); });
 
 </script>
 </body>
