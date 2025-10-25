@@ -1,221 +1,386 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JAIN AGAM AMCH Salary Calculator Tool</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #3498db;
-            color: #fff;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #2ecc71;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 10px 5px;
-        }
-        button:hover {
-            background-color: #27ae60;
-        }
-        .remove-btn {
-            background-color: #e74c3c;
-        }
-        .remove-btn:hover {
-            background-color: #c0392b;
-        }
-        .download-btn {
-            background-color: #f1c40f;
-        }
-        .download-btn:hover {
-            background-color: #d4ac0d;
-        }
-        .total-salary {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .controls {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JAIN AGM AMCH SALARY CALCULATOR TOOL</title>
+  <style>
+    :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:18px;color:#111}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+    h1{font-size:18px;margin:0}
+    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 20px rgba(12,22,39,0.04);margin-bottom:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="number"], input[type="text"], select{width:100%;padding:8px;border:1px solid #e6e9ef;border-radius:8px;font-size:13px}
+    .row{display:flex;gap:8px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;font-weight:600;cursor:pointer}
+    .secondary{background:#eef2ff;color:var(--accent);border:1px solid rgba(11,95,255,0.12)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border:1px solid #eef2ff;padding:6px;text-align:left}
+    th{background:#fbfdff}
+    .small{font-size:12px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .narrow{width:110px}
+    .action-btn{padding:6px 8px;border-radius:6px;border:0;background:#fff;color:var(--accent);border:1px solid rgba(11,95,255,0.12);cursor:pointer}
+    @media (max-width:980px){.narrow{width:auto}}
+  </style>
+  <!-- Optional external libs used only for exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>JAIN AGAM AMCH Salary Calculator Tool</h1>
-        <div class="controls">
-            <button onclick="addStaffRow()">Add Staff</button>
-            <button class="download-btn" onclick="downloadExcel()">Download Excel</button>
+  <div class="container">
+    <header>
+      <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
+      <div>
+        <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
+        <div class="small muted">Robust multi-row salary sheet — add rows, calculate, export CSV/XLSX/PDF. Fixed Add Row responsiveness.</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <label>College</label>
+          <input id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
         </div>
-        <table id="salaryTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Designation</th>
-                    <th>Department</th>
-                    <th>Gross Salary (₹)</th>
-                    <th>Sundays</th>
-                    <th>CLs</th>
-                    <th>Official Holidays</th>
-                    <th>ESI (₹)</th>
-                    <th>PF (₹)</th>
-                    <th>PT (₹)</th>
-                    <th>Shortfall Hours</th>
-                    <th>Total Working Hours</th>
-                    <th>Net Salary (₹)</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="staffTableBody"></tbody>
-        </table>
+        <div style="width:160px">
+          <label>Month</label>
+          <select id="monthSelect"> 
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option><option value="9" selected>September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div style="width:120px">
+          <label>Year</label>
+          <select id="yearSelect"></select>
+        </div>
+        <div style="width:120px">
+          <label>Total days</label>
+          <input type="number" id="totalDays" value="30">
+        </div>
+        <div style="width:120px">
+          <label>Sundays</label>
+          <input type="number" id="sundays" value="4">
+        </div>
+        <div style="width:140px">
+          <label>Paid holidays (additional, days)</label>
+          <input type="number" id="paidHolidays" value="0" min="0">
+        </div>
+        <div style="width:140px">
+          <label>Hours / day</label>
+          <input type="number" id="hoursPerDay" value="7" step="0.1">
+        </div>
+        <div style="width:140px">
+          <label>Default CL days for new rows</label>
+          <input type="number" id="defaultCLDays" value="2" min="0" step="1">
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="controls">
+        <button id="btnAddRow" type="button">Add Staff Row</button>
+        <button id="btnAddSample" type="button" class="secondary">Add Sample 5 Rows</button>
+        <button id="btnCalcAll" type="button">Calculate All</button>
+        <button id="btnCSV" type="button" class="secondary">Download CSV</button>
+        <button id="btnXLSX" type="button" class="secondary">Export Excel (.xlsx)</button>
+        <button id="btnPDF" type="button" class="secondary">Export PDF</button>
+        <button id="btnPrint" type="button" class="secondary">Print Sheet</button>
+        <button id="btnClear" type="button" class="secondary">Clear All Rows</button>
+      </div>
     </div>
 
-    <script>
-        const designations = ['Asst. Prof.', 'Asso. Prof.', 'Prof.'];
-        const departments = ['SS', 'SR', 'SK', 'DG', 'RSBK', 'AGADA', 'SW', 'RN', 'KC', 'PK', 'ST', 'SKT', 'PTSR', 'KB'];
-        const HOURS_PER_DAY = 7;
+    <div class="card">
+      <div style="overflow:auto">
+        <table id="staffTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Designation</th>
+              <th>Department</th>
+              <th class="narrow">Gross (₹)</th>
+              <th class="narrow">Per hour (₹)</th>
+              <th class="narrow">CL days</th>
+              <th class="narrow">Shortfall hrs</th>
+              <th class="narrow">EPF ₹</th>
+              <th class="narrow">ESI ₹</th>
+              <th class="narrow">PT ₹</th>
+              <th class="narrow">Unpaid Deduct (₹)</th>
+              <th class="narrow">Total Deductions (₹)</th>
+              <th class="narrow">Net Pay (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffBody">
+            <!-- rows inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        function addStaffRow() {
-            const tbody = document.getElementById('staffTableBody');
-            const row = document.createElement('tr');
+    <div class="card">
+      <div class="small muted">Notes: Monthly salary covers Sundays/paid holidays. Use <strong>Paid holidays</strong> to add extra paid days in the month (e.g. festival/state holidays). Default CL days applies to new rows but each row's CL days can be edited individually. The <strong>Per hour</strong> column shows computed hourly rate. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
+    </div>
 
-            row.innerHTML = `
-                <td><input type="text" class="name" placeholder="Enter Name"></td>
-                <td>
-                    <select class="designation">
-                        ${designations.map(d => `<option value="${d}">${d}</option>`).join('')}
-                    </select>
-                </td>
-                <td>
-                    <select class="department">
-                        ${departments.map(d => `<option value="${d}">${d}</option>`).join('')}
-                    </select>
-                </td>
-                <td><input type="number" class="gross-salary" placeholder="Enter Gross Salary" min="0" step="0.01" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="sundays" placeholder="Enter Sundays" min="0" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="cls" placeholder="Enter CLs" min="0" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="holidays" placeholder="Enter Holidays" min="0" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="esi" placeholder="Enter ESI" min="0" step="0.01" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="pf" placeholder="Enter PF" min="0" step="0.01" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="pt" placeholder="Enter PT" min="0" step="0.01" oninput="calculateSalary(this)"></td>
-                <td><input type="number" class="shortfall-hours" placeholder="Enter Shortfall Hours" min="0" step="0.01" oninput="calculateSalary(this)"></td>
-                <td><span class="total-hours">0</span></td>
-                <td><span class="net-salary">0</span></td>
-                <td><button class="remove-btn" onclick="removeRow(this)">Remove</button></td>
-            `;
-            tbody.appendChild(row);
-        }
+    <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use exports to save records.</footer>
+  </div>
 
-        function removeRow(button) {
-            button.parentElement.parentElement.remove();
-        }
+<script>
+// small safe helpers
+const el = id => document.getElementById(id);
+const fmt = x => Number(x||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-        function calculateSalary(element) {
-            const row = element.closest('tr');
-            const grossSalary = parseFloat(row.querySelector('.gross-salary').value) || 0;
-            const sundays = parseInt(row.querySelector('.sundays').value) || 0;
-            const cls = parseInt(row.querySelector('.cls').value) || 0;
-            const holidays = parseInt(row.querySelector('.holidays').value) || 0;
-            const esi = parseFloat(row.querySelector('.esi').value) || 0;
-            const pf = parseFloat(row.querySelector('.pf').value) || 0;
-            const pt = parseFloat(row.querySelector('.pt').value) || 0;
-            const shortfallHours = parseFloat(row.querySelector('.shortfall-hours').value) || 0;
+// populate year select
+(function initYears(){const ys=el('yearSelect');for(let y=2020;y<=2030;y++){const o=document.createElement('option');o.value=y;o.text=y;if(y===2025)o.selected=true;ys.appendChild(o)}})();
 
-            // Assume 30 days in a month for simplicity
-            const totalDays = 30;
-            const workingDays = totalDays - sundays - cls - holidays;
-            const totalWorkingHours = workingDays * HOURS_PER_DAY - shortfallHours;
+const DEPARTMENTS = ["SAMHITA & SIDDHANTA","RACHANA","KRIYA","DG","RSBK","AGADA","ROGA NIDANA","SW","KC","PK","SHALYA","SHALAKYA","PTSR","KB"];
+const DESIGNATIONS = [{v:'Assistant Professor',t:'Assistant Prof'},{v:'Associate Professor',t:'Associate Prof'},{v:'Professor',t:'Professor'}];
 
-            // Calculate per hour rate
-            const perHourRate = grossSalary / (totalDays * HOURS_PER_DAY);
-            const netSalary = (totalWorkingHours * perHourRate) - esi - pf - pt;
+let rowIdCounter = 0;
+function makeSelect(options, selected){
+  const s = document.createElement('select');
+  options.forEach(opt=>{const o = document.createElement('option'); if(typeof opt === 'string'){ o.value = opt; o.text = opt; } else { o.value = opt.v; o.text = opt.t;} if(selected && (o.value==selected || o.text==selected)) o.selected=true; s.appendChild(o);});
+  return s;
+}
 
-            row.querySelector('.total-hours').textContent = totalWorkingHours.toFixed(2);
-            row.querySelector('.net-salary').textContent = netSalary.toFixed(2);
-        }
+function addRow(prefill={}){
+  // create row elements programmatically to avoid innerHTML issues
+  const tbody = el('staffBody');
+  const tr = document.createElement('tr');
+  const id = ++rowIdCounter;
+  tr.dataset.rowid = id;
 
-        function downloadExcel() {
-            const table = document.getElementById('salaryTable');
-            const rows = table.querySelectorAll('tr');
-            const data = [];
+  const defaultCL = typeof prefill.clDays !== 'undefined' ? prefill.clDays : Number(el('defaultCLDays').value)||0;
 
-            // Add header
-            const headers = ['Name', 'Designation', 'Department', 'Gross Salary (₹)', 'Sundays', 'CLs', 'Official Holidays', 'ESI (₹)', 'PF (₹)', 'PT (₹)', 'Shortfall Hours', 'Total Working Hours', 'Net Salary (₹)'];
-            data.push(headers);
+  // cells
+  const cells = [];
+  for(let i=0;i<15;i++) cells.push(document.createElement('td'));
 
-            // Add data rows
-            rows.forEach((row, index) => {
-                if (index === 0) return; // Skip header row
-                const cells = row.querySelectorAll('td');
-                const rowData = [
-                    cells[0].querySelector('input').value || '',
-                    cells[1].querySelector('select').value || '',
-                    cells[2].querySelector('select').value || '',
-                    cells[3].querySelector('input').value || '0',
-                    cells[4].querySelector('input').value || '0',
-                    cells[5].querySelector('input').value || '0',
-                    cells[6].querySelector('input').value || '0',
-                    cells[7].querySelector('input').value || '0',
-                    cells[8].querySelector('input').value || '0',
-                    cells[9].querySelector('input').value || '0',
-                    cells[10].querySelector('input').value || '0',
-                    cells[11].querySelector('span').textContent || '0',
-                    cells[12].querySelector('span').textContent || '0'
-                ];
-                data.push(rowData);
-            });
+  cells[0].textContent = id;
 
-            // Create workbook and worksheet
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Salary Data');
+  const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.className='name'; nameInput.value = prefill.name||'';
+  cells[1].appendChild(nameInput);
 
-            // Download Excel file
-            XLSX.writeFile(wb, 'JAIN_AGAM_AMCH_Salary_Data.xlsx');
-        }
+  const desSel = makeSelect(DESIGNATIONS, prefill.desig);
+  cells[2].appendChild(desSel);
 
-        // Initialize with one row
-        addStaffRow();
-    </script>
+  const deptSel = makeSelect(DEPARTMENTS, prefill.dept);
+  cells[3].appendChild(deptSel);
+
+  const grossInput = document.createElement('input'); grossInput.type='number'; grossInput.className='gross'; grossInput.value = prefill.gross||57000;
+  cells[4].appendChild(grossInput);
+
+  cells[5].className = 'out hourly'; cells[5].textContent = '-';
+
+  const clInput = document.createElement('input'); clInput.type='number'; clInput.className='clDays'; clInput.min=0; clInput.value = (typeof prefill.clDays !== 'undefined') ? prefill.clDays : defaultCL;
+  cells[6].appendChild(clInput);
+
+  const shortInput = document.createElement('input'); shortInput.type='number'; shortInput.className='shortfall'; shortInput.step='0.25'; shortInput.min=0; shortInput.value = prefill.shortfall||15;
+  cells[7].appendChild(shortInput);
+
+  const epfInput = document.createElement('input'); epfInput.type='number'; epfInput.className='epf'; epfInput.step='0.01'; epfInput.min=0; epfInput.value = prefill.epfAmount||684;
+  cells[8].appendChild(epfInput);
+
+  const esiInput = document.createElement('input'); esiInput.type='number'; esiInput.className='esi'; esiInput.step='0.01'; esiInput.min=0; esiInput.value = prefill.esiAmount||100;
+  cells[9].appendChild(esiInput);
+
+  const ptInput = document.createElement('input'); ptInput.type='number'; ptInput.className='pt'; ptInput.step='0.01'; ptInput.min=0; ptInput.value = prefill.profTaxAmt||200;
+  cells[10].appendChild(ptInput);
+
+  cells[11].className='out unpaid'; cells[11].textContent='-';
+  cells[12].className='out totalDeduct'; cells[12].textContent='-';
+  cells[13].className='out net'; cells[13].textContent='-';
+
+  const actionDiv = document.createElement('div'); actionDiv.style.whiteSpace='nowrap';
+  const calcBtn = document.createElement('button'); calcBtn.type='button'; calcBtn.className='action-btn'; calcBtn.textContent='Calc';
+  const removeBtn = document.createElement('button'); removeBtn.type='button'; removeBtn.className='action-btn'; removeBtn.textContent='Remove';
+  actionDiv.appendChild(calcBtn); actionDiv.appendChild(removeBtn);
+  cells[14].appendChild(actionDiv);
+
+  // append cells to tr
+  cells.forEach(c=>tr.appendChild(c));
+
+  // attach listeners
+  calcBtn.addEventListener('click', ()=>computeForTr(tr));
+  removeBtn.addEventListener('click', ()=>{ if(confirm('Remove this row?')) tr.remove(); });
+
+  // add to table
+  tbody.appendChild(tr);
+}
+
+function clearRows(){ if(!confirm('Clear all rows?')) return; el('staffBody').innerHTML=''; rowIdCounter=0; }
+
+function computeForTr(tr){
+  const totalDays = Number(el('totalDays').value)||30;
+  const sundays = Number(el('sundays').value)||0;
+  const paidHolidays = Number(el('paidHolidays').value)||0; // additional paid holidays
+  const hoursPerDay = Number(el('hoursPerDay').value)||7;
+
+  const gross = Number(tr.querySelector('.gross').value)||0;
+  const clDays = Number(tr.querySelector('.clDays').value)||0;
+  const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+  const epf = Number(tr.querySelector('.epf').value)||0;
+  const esi = Number(tr.querySelector('.esi').value)||0;
+  const pt = Number(tr.querySelector('.pt').value)||0;
+
+  const workingDays = Math.max(0, totalDays - sundays - paidHolidays);
+  const totalWorkingHours = workingDays * hoursPerDay;
+  const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
+
+  const unpaidDeduct = shortfall * hourlyRate;
+  const subtotal = gross - unpaidDeduct;
+  const totalDeductions = Number(epf)+Number(esi)+Number(pt);
+  const net = subtotal - totalDeductions;
+
+  const hourlyCell = tr.querySelector('.out.hourly');
+  const unpaidCell = tr.querySelector('.out.unpaid');
+  const totalDedCell = tr.querySelector('.out.totalDeduct');
+  const netCell = tr.querySelector('.out.net');
+
+  if(hourlyCell) hourlyCell.textContent = fmt(hourlyRate);
+  if(unpaidCell) unpaidCell.textContent = fmt(unpaidDeduct);
+  if(totalDedCell) totalDedCell.textContent = fmt(totalDeductions);
+  if(netCell) netCell.textContent = fmt(net);
+}
+
+function calculateAll(){
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  rows.forEach(tr=>computeForTr(tr));
+  alert('Calculated '+rows.length+' rows. You can now Download CSV, Export Excel or Export PDF.');
+}
+
+function downloadCSV(){
+  calculateAll();
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  if(rows.length===0){alert('No rows to export'); return}
+  const header = ['Sr','Name','Designation','Department','Gross','PerHour','CL_days','Shortfall_hrs','Unpaid_Deduction','EPF','ESI','PT','Total_Deductions','Net_Pay'];
+  const data = [header];
+  rows.forEach((tr,idx)=>{
+    const name = tr.querySelector('.name').value||'';
+    const selects = tr.querySelectorAll('select');
+    const desig = selects[0] ? selects[0].value : '';
+    const dept = selects[1] ? selects[1].value : '';
+    const gross = tr.querySelector('.gross').value||'';
+    const perHour = tr.querySelector('.out.hourly').textContent||'';
+    const clDays = tr.querySelector('.clDays').value||'';
+    const shortfall = tr.querySelector('.shortfall').value||'';
+    const unpaid = tr.querySelector('.out.unpaid').textContent||'';
+    const epf = tr.querySelector('.epf').value||'';
+    const esi = tr.querySelector('.esi').value||'';
+    const pt = tr.querySelector('.pt').value||'';
+    const totalDeduct = tr.querySelector('.out.totalDeduct').textContent||'';
+    const net = tr.querySelector('.out.net').textContent||'';
+    data.push([idx+1, name, desig, dept, gross, perHour, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
+  });
+  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('
+');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+el('monthSelect').value+'_'+el('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function exportXLSX(){
+  calculateAll();
+  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
+  if(rows.length===0){alert('No rows to export'); return}
+  const aoa = [];
+  aoa.push(['Sr','Name','Designation','Department','Gross (₹)','Per Hour (₹)','CL days','Shortfall (hrs)','Unpaid Deduction (₹)','EPF (₹)','ESI (₹)','PT (₹)','Total Deductions (₹)','Net Pay (₹)']);
+  rows.forEach((tr,idx)=>{
+    const name = tr.querySelector('.name').value||'';
+    const selects = tr.querySelectorAll('select');
+    const desig = selects[0] ? selects[0].value : '';
+    const dept = selects[1] ? selects[1].value : '';
+    const gross = Number(tr.querySelector('.gross').value)||0;
+    const perHour = Number(tr.querySelector('.out.hourly').textContent.replace(/,/g,''))||0;
+    const clDays = Number(tr.querySelector('.clDays').value)||0;
+    const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+    const unpaid = Number(tr.querySelector('.out.unpaid').textContent.replace(/,/g,''))||0;
+    const epf = Number(tr.querySelector('.epf').value)||0;
+    const esi = Number(tr.querySelector('.esi').value)||0;
+    const pt = Number(tr.querySelector('.pt').value)||0;
+    const totalDeduct = Number(tr.querySelector('.out.totalDeduct').textContent.replace(/,/g,''))||0;
+    const net = Number(tr.querySelector('.out.net').textContent.replace(/,/g,''))||0;
+    aoa.push([idx+1,name,desig,dept,gross,perHour,clDays,shortfall,unpaid,epf,esi,pt,Number(totalDeduct),Number(net)]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wscols = [{wpx:30},{wpx:140},{wpx:110},{wpx:110},{wpx:90},{wpx:90},{wpx:60},{wpx:80},{wpx:110},{wpx:90},{wpx:90},{wpx:90},{wpx:120},{wpx:110}];
+  ws['!cols'] = wscols;
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'SalarySheet');
+  const month = el('monthSelect').options[el('monthSelect').selectedIndex].text;
+  const year = el('yearSelect').value;
+  const college = el('college').value;
+  wb.Props = {Title: 'Salary Sheet - '+month+' '+year, Subject: college, Author: 'JAIN AGM AMCH'};
+  const fileName = `salary_sheet_${month}_${year}.xlsx`;
+  XLSX.writeFile(wb, fileName, {bookType:'xlsx', type:'binary'});
+}
+
+async function exportPDF(){
+  calculateAll();
+  const table = document.getElementById('staffTable');
+  const month = el('monthSelect').options[el('monthSelect').selectedIndex].text;
+  const year = el('yearSelect').value;
+  const college = el('college').value;
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '12px'; wrapper.style.background = '#fff'; wrapper.style.color = '#111'; wrapper.style.width = '100%';
+  const header = document.createElement('div'); header.innerHTML = `<h2 style="margin:0">${college}</h2><div style="margin-bottom:8px">Salary Sheet — ${month} ${year}</div>`;
+  wrapper.appendChild(header);
+  const tblClone = table.cloneNode(true);
+  tblClone.style.borderCollapse = 'collapse';
+  tblClone.querySelectorAll('th,td').forEach(cell=>{ cell.style.border = '1px solid #ccc'; cell.style.padding='6px'; cell.style.fontSize='10px'; });
+  wrapper.appendChild(tblClone);
+  document.body.appendChild(wrapper);
+  try{
+    const canvas = await html2canvas(wrapper, {scale:2});
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l','pt','a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgProps = { width: canvas.width, height: canvas.height };
+    const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
+    const imgWidth = imgProps.width * ratio; const imgHeight = imgProps.height * ratio;
+    let position = 20;
+    pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, position, imgWidth, imgHeight);
+    if(imgHeight > pdfHeight - 40){
+      const totalPages = Math.ceil(imgHeight / (pdfHeight - 40));
+      for(let i=1;i<totalPages;i++){
+        pdf.addPage();
+        const yPos = (-(pdfHeight-40)*i) + position;
+        pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, yPos, imgWidth, imgHeight);
+      }
+    }
+    const fileName = `salary_sheet_${month}_${year}.pdf`;
+    pdf.save(fileName);
+    alert('PDF generated: '+fileName);
+  }catch(err){ console.error('exportPDF error', err); alert('Failed to generate PDF. See console.'); }
+  wrapper.remove();
+}
+
+function printSheet(){ calculateAll(); window.print(); }
+
+function addSampleRows(){ for(let i=0;i<5;i++){ addRow({name:'Dr. Example '+(i+1)}); } }
+
+// attach event listeners after DOM ready
+document.addEventListener('DOMContentLoaded',()=>{
+  el('btnAddRow').addEventListener('click',()=>addRow());
+  el('btnAddSample').addEventListener('click',addSampleRows);
+  el('btnCalcAll').addEventListener('click',calculateAll);
+  el('btnCSV').addEventListener('click',downloadCSV);
+  el('btnXLSX').addEventListener('click',exportXLSX);
+  el('btnPDF').addEventListener('click',exportPDF);
+  el('btnPrint').addEventListener('click',printSheet);
+  el('btnClear').addEventListener('click',clearRows);
+  // initial single row
+  addRow();
+});
+
+</script>
 </body>
 </html>
