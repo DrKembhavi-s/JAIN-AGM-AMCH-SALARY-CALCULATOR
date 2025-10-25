@@ -1,275 +1,530 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>JAIN AGM AMCH SALARY CALCULATOR TOOL</title>
-  <style>
-    :root{--bg:#f6f8fb;--card:#ffffff;--accent:#0b5fff;--muted:#6b7280}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:18px;color:#111}
-    .container{max-width:1200px;margin:0 auto}
-    header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
-    h1{font-size:18px;margin:0}
-    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 20px rgba(12,22,39,0.04);margin-bottom:12px}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type="number"], input[type="text"], select{width:100%;padding:8px;border:1px solid #e6e9ef;border-radius:8px;font-size:13px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;font-weight:600;cursor:pointer}
-    .secondary{background:#eef2ff;color:var(--accent);border:1px solid rgba(11,95,255,0.12)}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{border:1px solid #eef2ff;padding:6px;text-align:left}
-    th{background:#fbfdff}
-    .small{font-size:12px;color:var(--muted)}
-    .narrow{width:110px}
-    .action-btn{padding:6px 8px;border-radius:6px;border:0;background:#fff;color:var(--accent);border:1px solid rgba(11,95,255,0.12);cursor:pointer}
-    .status{font-size:13px;color:#047857;margin-top:8px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAIN AGM AMACH Salary Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .month-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .month-section h2 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .month-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .staff-section {
+            margin-bottom: 30px;
+        }
+
+        .staff-form {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #cbd5e0;
+        }
+
+        .staff-form h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .calculated-values {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .calc-item {
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .calc-item strong {
+            color: #2d3748;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-add {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-download {
+            background: #667eea;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-download:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-remove {
+            background: #f56565;
+            color: white;
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        .btn-remove:hover {
+            background: #e53e3e;
+        }
+
+        .staff-table {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .total-row {
+            background: #edf2f7;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        input[type="number"] {
+            width: 100%;
+        }
+
+        .actions {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
-      <div>
-        <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
-        <div class="small">Quick-check version — Add Row button fixed. If it still fails, open browser console (F12) and paste any errors here so I can patch fast.</div>
-      </div>
-    </header>
+    <div class="container">
+        <h1>JAIN AGM AMACH Salary Calculator Tool</h1>
+        
+        <div class="month-section">
+            <h2>Month Configuration</h2>
+            <div class="month-inputs">
+                <div class="input-group">
+                    <label for="month">Month</label>
+                    <input type="month" id="month" required>
+                </div>
+                <div class="input-group">
+                    <label for="workingDays">Working Days</label>
+                    <input type="number" id="workingDays" min="1" max="31" required>
+                </div>
+                <div class="input-group">
+                    <label for="sundays">Sundays (Paid)</label>
+                    <input type="number" id="sundays" min="0" max="5" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="officialHolidays">Official Holidays (Paid)</label>
+                    <input type="number" id="officialHolidays" min="0" max="10" value="0">
+                </div>
+            </div>
+        </div>
 
-    <div class="card">
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px">
-          <label>College</label>
-          <input id="college" value="Jain AGM Ayurvedic Medical College & Hospital, Varur, Karnataka">
+        <div class="staff-section">
+            <div class="staff-form">
+                <h3>Add Staff Member</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="staffName">Staff Name</label>
+                        <input type="text" id="staffName" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="designation">Designation</label>
+                        <select id="designation" required>
+                            <option value="">Select</option>
+                            <option value="ASST PROF">ASST PROF</option>
+                            <option value="ASSO PROF">ASSO PROF</option>
+                            <option value="PROF">PROF</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="department">Department</label>
+                        <select id="department" required>
+                            <option value="">Select</option>
+                            <option value="SS">SS</option>
+                            <option value="SR">SR</option>
+                            <option value="SK">SK</option>
+                            <option value="DG">DG</option>
+                            <option value="RSBK">RSBK</option>
+                            <option value="AT">AT</option>
+                            <option value="RN">RN</option>
+                            <option value="SW">SW</option>
+                            <option value="KC">KC</option>
+                            <option value="PK">PK</option>
+                            <option value="ST">ST</option>
+                            <option value="SKT">SKT</option>
+                            <option value="PTSR">PTSR</option>
+                            <option value="KB">KB</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="grossSalary">Gross Salary (₹)</label>
+                        <input type="number" id="grossSalary" min="0" step="0.01" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="cls">CLs (Paid Days)</label>
+                        <input type="number" id="cls" min="0" max="10" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="shortfallHours">Shortfall Hours</label>
+                        <input type="number" id="shortfallHours" min="0" step="0.5" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="esiDeduction">ESI Deduction (₹)</label>
+                        <input type="number" id="esiDeduction" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="pfDeduction">PF Deduction (₹)</label>
+                        <input type="number" id="pfDeduction" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="ptDeduction">PT Deduction (₹)</label>
+                        <input type="number" id="ptDeduction" min="0" step="0.01" value="0">
+                    </div>
+                </div>
+                <div id="calculatedDisplay" class="calculated-values" style="display: none;">
+                    <div class="calc-item">Total Working Hours: <strong id="dispTotalHours">0</strong></div>
+                    <div class="calc-item">Per Day Salary: <strong id="dispPerDay">₹0</strong></div>
+                    <div class="calc-item">Per Hour Salary: <strong id="dispPerHour">₹0</strong></div>
+                    <div class="calc-item">Shortfall Deduction: <strong id="dispShortfall">₹0</strong></div>
+                    <div class="calc-item">Total Deductions: <strong id="dispTotalDed">₹0</strong></div>
+                    <div class="calc-item">Net Salary: <strong id="dispNetSalary">₹0</strong></div>
+                </div>
+                <button class="btn btn-add" onclick="addStaff()">Add Staff to List</button>
+            </div>
         </div>
-        <div style="width:160px">
-          <label>Month</label>
-          <select id="monthSelect"> 
-            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-            <option value="7">July</option><option value="8">August</option><option value="9" selected>September</option>
-            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-          </select>
+
+        <div class="staff-table">
+            <table id="staffTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Gross Salary</th>
+                        <th>CLs</th>
+                        <th>Total Hours</th>
+                        <th>Per Day</th>
+                        <th>Per Hour</th>
+                        <th>Shortfall Hrs</th>
+                        <th>Shortfall Amt</th>
+                        <th>ESI</th>
+                        <th>PF</th>
+                        <th>PT</th>
+                        <th>Total Deductions</th>
+                        <th>Net Salary</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                </tbody>
+            </table>
         </div>
-        <div style="width:120px">
-          <label>Year</label>
-          <select id="yearSelect"></select>
-        </div>
-        <div style="width:120px">
-          <label>Total days</label>
-          <input type="number" id="totalDays" value="30">
-        </div>
-        <div style="width:120px">
-          <label>Sundays</label>
-          <input type="number" id="sundays" value="4">
-        </div>
-        <div style="width:140px">
-          <label>Paid holidays (days)</label>
-          <input type="number" id="paidHolidays" value="0" min="0">
-        </div>
-        <div style="width:140px">
-          <label>Hours / day</label>
-          <input type="number" id="hoursPerDay" value="7" step="0.1">
-        </div>
-        <div style="width:140px">
-          <label>Default CL days for new rows</label>
-          <input type="number" id="defaultCLDays" value="2" min="0" step="1">
-        </div>
-      </div>
-      <div style="height:10px"></div>
-      <div class="controls">
-        <button id="btnAddRow" type="button">Add Staff Row</button>
-        <button id="btnCalcAll" type="button">Calculate All</button>
-        <button id="btnCSV" type="button" class="secondary">Download CSV</button>
-        <button id="btnXLSX" type="button" class="secondary">Export Excel (.xlsx)</button>
-        <button id="btnPDF" type="button" class="secondary">Export PDF</button>
-        <button id="btnClear" type="button" class="secondary">Clear All Rows</button>
-      </div>
-      <div class="status" id="statusMsg">Status: ready</div>
+
+        <button class="btn btn-download" onclick="downloadExcel()">Download Salary Sheet (Excel)</button>
     </div>
 
-    <div class="card">
-      <div style="overflow:auto">
-        <table id="staffTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Designation</th>
-              <th>Department</th>
-              <th>Gross (₹)</th>
-              <th>Per hour (₹)</th>
-              <th>CL days</th>
-              <th>Shortfall hrs</th>
-              <th>EPF ₹</th>
-              <th>ESI ₹</th>
-              <th>PT ₹</th>
-              <th>Unpaid Deduct (₹)</th>
-              <th>Total Deductions (₹)</th>
-              <th>Net Pay (₹)</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="staffBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <script>
+        let staffList = [];
 
-    <div class="card small muted">If Add Row still doesn't react: 1) try a different browser (Chrome/Edge/Firefox), 2) open Developer Console (F12) and copy any error messages into the chat. I'll patch immediately.</div>
+        // Real-time calculation preview
+        document.querySelectorAll('#grossSalary, #shortfallHours, #esiDeduction, #pfDeduction, #ptDeduction').forEach(input => {
+            input.addEventListener('input', updateCalculationPreview);
+        });
 
-    <footer class="small muted">Data stored only in-browser. Use exports to save.</footer>
-  </div>
+        function updateCalculationPreview() {
+            const workingDays = parseInt(document.getElementById('workingDays').value) || 0;
+            const sundays = parseInt(document.getElementById('sundays').value) || 0;
+            const holidays = parseInt(document.getElementById('officialHolidays').value) || 0;
+            const cls = parseInt(document.getElementById('cls').value) || 0;
+            const grossSalary = parseFloat(document.getElementById('grossSalary').value) || 0;
+            const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
+            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
+            const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
 
-<script>
-(function(){
-  'use strict';
-  const el = id => document.getElementById(id);
-  const fmt = x => Number(x||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+            if (grossSalary > 0 && workingDays > 0) {
+                const totalPaidDays = workingDays + sundays + holidays + cls;
+                const totalWorkingHours = totalPaidDays * 7;
+                const perDaySalary = grossSalary / totalPaidDays;
+                const perHourSalary = perDaySalary / 7;
+                const shortfallDeduction = shortfallHours * perHourSalary;
+                const totalDeductions = esi + pf + pt + shortfallDeduction;
+                const netSalary = grossSalary - totalDeductions;
 
-  // year select
-  (function(){ const ys = el('yearSelect'); for(let y=2020;y<=2030;y++){ const o = document.createElement('option'); o.value=y; o.text=y; if(y===2025) o.selected=true; ys.appendChild(o);} })();
+                document.getElementById('calculatedDisplay').style.display = 'grid';
+                document.getElementById('dispTotalHours').textContent = totalWorkingHours.toFixed(2);
+                document.getElementById('dispPerDay').textContent = '₹' + perDaySalary.toFixed(2);
+                document.getElementById('dispPerHour').textContent = '₹' + perHourSalary.toFixed(2);
+                document.getElementById('dispShortfall').textContent = '₹' + shortfallDeduction.toFixed(2);
+                document.getElementById('dispTotalDed').textContent = '₹' + totalDeductions.toFixed(2);
+                document.getElementById('dispNetSalary').textContent = '₹' + netSalary.toFixed(2);
+            }
+        }
 
-  const DEPARTMENTS = ["SAMHITA & SIDDHANTA","RACHANA","KRIYA","DG","RSBK","AGADA","ROGA NIDANA","SW","KC","PK","SHALYA","SHALAKYA","PTSR","KB"];
-  const DESIGNATIONS = [{v:'Assistant Professor',t:'Assistant Prof'},{v:'Associate Professor',t:'Associate Prof'},{v:'Professor',t:'Professor'}];
+        function addStaff() {
+            const name = document.getElementById('staffName').value.trim();
+            const designation = document.getElementById('designation').value;
+            const department = document.getElementById('department').value;
+            const grossSalary = parseFloat(document.getElementById('grossSalary').value);
+            const cls = parseInt(document.getElementById('cls').value) || 0;
+            const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
+            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
+            const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
 
-  let rowCounter = 0;
+            const workingDays = parseInt(document.getElementById('workingDays').value);
+            const sundays = parseInt(document.getElementById('sundays').value) || 0;
+            const holidays = parseInt(document.getElementById('officialHolidays').value) || 0;
 
-  function makeSelect(options, selected){
-    const s = document.createElement('select');
-    options.forEach(opt=>{ const o = document.createElement('option'); if(typeof opt === 'string'){ o.value = opt; o.text = opt; } else { o.value = opt.v; o.text = opt.t } if(selected && (o.value==selected || o.text==selected)) o.selected=true; s.appendChild(o); });
-    return s;
-  }
+            if (!name || !designation || !department || !grossSalary || !workingDays) {
+                alert('Please fill all required fields including month configuration!');
+                return;
+            }
 
-  function addRow(prefill){
-    try{
-      prefill = prefill || {};
-      const tbody = el('staffBody');
-      const tr = document.createElement('tr');
-      const id = ++rowCounter; tr.dataset.rowid = id;
+            const totalPaidDays = workingDays + sundays + holidays + cls;
+            const totalWorkingHours = totalPaidDays * 7;
+            const perDaySalary = grossSalary / totalPaidDays;
+            const perHourSalary = perDaySalary / 7;
+            const shortfallDeduction = shortfallHours * perHourSalary;
+            const totalDeductions = esi + pf + pt + shortfallDeduction;
+            const netSalary = grossSalary - totalDeductions;
 
-      // create and append cells
-      const cells = [];
-      for(let i=0;i<15;i++){ const td = document.createElement('td'); cells.push(td); }
-      cells[0].textContent = id;
+            const staff = {
+                name, designation, department, grossSalary, cls,
+                totalWorkingHours, perDaySalary, perHourSalary,
+                shortfallHours, shortfallDeduction,
+                esi, pf, pt, totalDeductions, netSalary
+            };
 
-      const name = document.createElement('input'); name.type='text'; name.className='name'; name.value = prefill.name||''; cells[1].appendChild(name);
+            staffList.push(staff);
+            renderTable();
+            clearForm();
+        }
 
-      const desel = makeSelect(DESIGNATIONS, prefill.desig); cells[2].appendChild(desel);
-      const deptsel = makeSelect(DEPARTMENTS, prefill.dept); cells[3].appendChild(deptsel);
+        function clearForm() {
+            document.getElementById('staffName').value = '';
+            document.getElementById('designation').value = '';
+            document.getElementById('department').value = '';
+            document.getElementById('grossSalary').value = '';
+            document.getElementById('cls').value = '0';
+            document.getElementById('shortfallHours').value = '0';
+            document.getElementById('esiDeduction').value = '0';
+            document.getElementById('pfDeduction').value = '0';
+            document.getElementById('ptDeduction').value = '0';
+            document.getElementById('calculatedDisplay').style.display = 'none';
+        }
 
-      const gross = document.createElement('input'); gross.type='number'; gross.className='gross'; gross.value = prefill.gross||57000; cells[4].appendChild(gross);
+        function removeStaff(index) {
+            staffList.splice(index, 1);
+            renderTable();
+        }
 
-      cells[5].className='out hourly'; cells[5].textContent='-';
+        function renderTable() {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = '';
 
-      const defaultCL = (typeof prefill.clDays !== 'undefined') ? prefill.clDays : Number(el('defaultCLDays').value)||0;
-      const cl = document.createElement('input'); cl.type='number'; cl.className='clDays'; cl.min=0; cl.value = defaultCL; cells[6].appendChild(cl);
+            staffList.forEach((staff, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${staff.name}</td>
+                    <td>${staff.designation}</td>
+                    <td>${staff.department}</td>
+                    <td>₹${staff.grossSalary.toFixed(2)}</td>
+                    <td>${staff.cls}</td>
+                    <td>${staff.totalWorkingHours.toFixed(2)}</td>
+                    <td>₹${staff.perDaySalary.toFixed(2)}</td>
+                    <td>₹${staff.perHourSalary.toFixed(2)}</td>
+                    <td>${staff.shortfallHours.toFixed(2)}</td>
+                    <td>₹${staff.shortfallDeduction.toFixed(2)}</td>
+                    <td>₹${staff.esi.toFixed(2)}</td>
+                    <td>₹${staff.pf.toFixed(2)}</td>
+                    <td>₹${staff.pt.toFixed(2)}</td>
+                    <td>₹${staff.totalDeductions.toFixed(2)}</td>
+                    <td>₹${staff.netSalary.toFixed(2)}</td>
+                    <td class="actions"><button class="btn btn-remove" onclick="removeStaff(${index})">Remove</button></td>
+                `;
+            });
+        }
 
-      const shortf = document.createElement('input'); shortf.type='number'; shortf.className='shortfall'; shortf.step='0.25'; shortf.min=0; shortf.value = prefill.shortfall||0; cells[7].appendChild(shortf);
+        function downloadExcel() {
+            if (staffList.length === 0) {
+                alert('Please add at least one staff member before downloading!');
+                return;
+            }
 
-      const epf = document.createElement('input'); epf.type='number'; epf.className='epf'; epf.step='0.01'; epf.min=0; epf.value = prefill.epfAmount||0; cells[8].appendChild(epf);
-      const esi = document.createElement('input'); esi.type='number'; esi.className='esi'; esi.step='0.01'; esi.min=0; esi.value = prefill.esiAmount||0; cells[9].appendChild(esi);
-      const pt = document.createElement('input'); pt.type='number'; pt.className='pt'; pt.step='0.01'; pt.min=0; pt.value = prefill.profTaxAmt||0; cells[10].appendChild(pt);
+            const month = document.getElementById('month').value;
+            const workingDays = document.getElementById('workingDays').value;
+            const sundays = document.getElementById('sundays').value;
+            const holidays = document.getElementById('officialHolidays').value;
 
-      cells[11].className='out unpaid'; cells[11].textContent='-';
-      cells[12].className='out totalDeduct'; cells[12].textContent='-';
-      cells[13].className='out net'; cells[13].textContent='-';
+            const data = [
+                ['JAIN AGM AMACH SALARY SHEET'],
+                ['Month:', month],
+                ['Working Days:', workingDays],
+                ['Sundays (Paid):', sundays],
+                ['Official Holidays (Paid):', holidays],
+                [],
+                ['Name', 'Designation', 'Department', 'Gross Salary', 'CLs', 'Total Working Hours', 
+                 'Per Day Salary', 'Per Hour Salary', 'Shortfall Hours', 'Shortfall Amount', 
+                 'ESI Deduction', 'PF Deduction', 'PT Deduction', 'Total Deductions', 'Net Salary']
+            ];
 
-      const actions = document.createElement('div'); actions.style.whiteSpace='nowrap';
-      const calcBtn = document.createElement('button'); calcBtn.type='button'; calcBtn.className='action-btn'; calcBtn.textContent='Calc';
-      const removeBtn = document.createElement('button'); removeBtn.type='button'; removeBtn.className='action-btn'; removeBtn.textContent='Remove';
-      actions.appendChild(calcBtn); actions.appendChild(removeBtn);
-      cells[14].appendChild(actions);
+            staffList.forEach(staff => {
+                data.push([
+                    staff.name,
+                    staff.designation,
+                    staff.department,
+                    staff.grossSalary.toFixed(2),
+                    staff.cls,
+                    staff.totalWorkingHours.toFixed(2),
+                    staff.perDaySalary.toFixed(2),
+                    staff.perHourSalary.toFixed(2),
+                    staff.shortfallHours.toFixed(2),
+                    staff.shortfallDeduction.toFixed(2),
+                    staff.esi.toFixed(2),
+                    staff.pf.toFixed(2),
+                    staff.pt.toFixed(2),
+                    staff.totalDeductions.toFixed(2),
+                    staff.netSalary.toFixed(2)
+                ]);
+            });
 
-      cells.forEach(c=>tr.appendChild(c));
-      tbody.appendChild(tr);
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Salary Sheet');
 
-      // listeners
-      calcBtn.addEventListener('click', ()=>computeForTr(tr));
-      removeBtn.addEventListener('click', ()=>{ if(confirm('Remove this row?')) tr.remove(); });
-
-      // small visual confirmation
-      el('statusMsg').textContent = `Row ${id} added`;
-      setTimeout(()=>{ el('statusMsg').textContent = 'Ready'; }, 900);
-
-      return tr;
-    }catch(err){
-      console.error('addRow error', err);
-      el('statusMsg').textContent = 'Error adding row — see console';
-    }
-  }
-
-  function computeForTr(tr){
-    try{
-      const totalDays = Number(el('totalDays').value)||30;
-      const sundays = Number(el('sundays').value)||0;
-      const paidHolidays = Number(el('paidHolidays').value)||0;
-      const hoursPerDay = Number(el('hoursPerDay').value)||7;
-
-      const gross = Number(tr.querySelector('.gross').value)||0;
-      const clDays = Number(tr.querySelector('.clDays').value)||0;
-      const shortfall = Number(tr.querySelector('.shortfall').value)||0;
-      const epf = Number(tr.querySelector('.epf').value)||0;
-      const esi = Number(tr.querySelector('.esi').value)||0;
-      const pt = Number(tr.querySelector('.pt').value)||0;
-
-      const workingDays = Math.max(0, totalDays - sundays - paidHolidays);
-      const totalWorkingHours = workingDays * hoursPerDay;
-      const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
-
-      const unpaidDeduct = shortfall * hourlyRate;
-      const subtotal = gross - unpaidDeduct;
-      const totalDeductions = Number(epf)+Number(esi)+Number(pt);
-      const net = subtotal - totalDeductions;
-
-      const hourlyCell = tr.querySelector('.out.hourly');
-      const unpaidCell = tr.querySelector('.out.unpaid');
-      const totalDedCell = tr.querySelector('.out.totalDeduct');
-      const netCell = tr.querySelector('.out.net');
-      if(hourlyCell) hourlyCell.textContent = fmt(hourlyRate);
-      if(unpaidCell) unpaidCell.textContent = fmt(unpaidDeduct);
-      if(totalDedCell) totalDedCell.textContent = fmt(totalDeductions);
-      if(netCell) netCell.textContent = fmt(net);
-    }catch(err){ console.error('computeForTr', err); el('statusMsg').textContent='Compute error — see console'; }
-  }
-
-  function calculateAll(){ Array.from(document.querySelectorAll('#staffBody tr')).forEach(tr=>computeForTr(tr)); el('statusMsg').textContent='All rows calculated'; setTimeout(()=>el('statusMsg').textContent='Ready',800); }
-
-  function downloadCSV(){
-    calculateAll();
-    const rows = Array.from(document.querySelectorAll('#staffBody tr'));
-    if(rows.length===0){ alert('No rows'); return; }
-    const header = ['Sr','Name','Designation','Department','Gross','PerHour','CL_days','Shortfall_hrs','Unpaid_Deduction','EPF','ESI','PT','Total_Deductions','Net_Pay'];
-    const data=[header];
-    rows.forEach((tr,idx)=>{
-      const name = (tr.querySelector('.name')||{}).value||'';
-      const selects = tr.querySelectorAll('select');
-      const desig = selects[0]?selects[0].value:''; const dept = selects[1]?selects[1].value:'';
-      const gross = (tr.querySelector('.gross')||{}).value||'';
-      const perHour = (tr.querySelector('.out.hourly')||{}).textContent||'';
-      const cl = (tr.querySelector('.clDays')||{}).value||'';
-      const shortf = (tr.querySelector('.shortfall')||{}).value||'';
-      const unpaid = (tr.querySelector('.out.unpaid')||{}).textContent||'';
-      const epf = (tr.querySelector('.epf')||{}).value||''; const esi=(tr.querySelector('.esi')||{}).value||''; const pt=(tr.querySelector('.pt')||{}).value||'';
-      const totalDed = (tr.querySelector('.out.totalDeduct')||{}).textContent||''; const net=(tr.querySelector('.out.net')||{}).textContent||'';
-      data.push([idx+1,name,desig,dept,gross,perHour,cl,shortf,unpaid,epf,esi,pt,totalDed,net]);
-    });
-    const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',')? '"'+c.replace(/"/g,'""')+'"': c).join(',')).join('
-');
-    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='salary_sheet_'+el('monthSelect').value+'_'+el('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
-
-  // minimal XLSX/PDF exports removed here to focus on Add Row fix; they will still work if you add back libs.
-
-  // attach listeners
-  document.addEventListener('DOMContentLoaded', ()=>{
-    el('btnAddRow').addEventListener('click', ()=>{ addRow(); console.log('Add Row clicked'); });
-    el('btnCalcAll').addEventListener('click', calculateAll);
-    el('btnCSV').addEventListener('click', downloadCSV);
-    el('btnClear').addEventListener('click', ()=>{ if(confirm('Clear all rows?')){ el('staffBody').innerHTML=''; rowCounter=0; el('statusMsg').textContent='Cleared'; }});
-    // ensure first row present
-    addRow();
-  });
-
-})();
-</script>
+            const fileName = `Salary_Sheet_${month || 'Current'}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
 </body>
 </html>
