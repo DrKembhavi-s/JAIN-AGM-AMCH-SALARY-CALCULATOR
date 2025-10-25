@@ -310,8 +310,8 @@
                         <input type="number" id="shortfallHours" min="0" step="0.5" value="0">
                     </div>
                     <div class="input-group">
-                        <label for="esiDeduction">ESI Deduction (₹)</label>
-                        <input type="number" id="esiDeduction" min="0" step="0.01" value="0">
+                        <label for="tdsDeduction">TDS Deduction (₹)</label>
+                        <input type="number" id="tdsDeduction" min="0" step="0.01" value="0">
                     </div>
                     <div class="input-group">
                         <label for="pfDeduction">PF Deduction (₹)</label>
@@ -350,7 +350,7 @@
                         <th>Per Hour</th>
                         <th>Shortfall Hrs</th>
                         <th>Shortfall Amt</th>
-                        <th>ESI</th>
+                        <th>TDS</th>
                         <th>PF</th>
                         <th>PT</th>
                         <th>Total Deductions</th>
@@ -371,7 +371,7 @@
         let editingIndex = -1;
 
         // Real-time calculation preview
-        document.querySelectorAll('#grossSalary, #shortfallHours, #esiDeduction, #pfDeduction, #ptDeduction').forEach(input => {
+        document.querySelectorAll('#grossSalary, #shortfallHours, #tdsDeduction, #pfDeduction, #ptDeduction').forEach(input => {
             input.addEventListener('input', updateCalculationPreview);
         });
 
@@ -382,7 +382,7 @@
             const cls = parseInt(document.getElementById('cls').value) || 0;
             const grossSalary = parseFloat(document.getElementById('grossSalary').value) || 0;
             const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
-            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const tds = parseFloat(document.getElementById('tdsDeduction').value) || 0;
             const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
             const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
 
@@ -392,7 +392,7 @@
                 const perDaySalary = grossSalary / totalPaidDays;
                 const perHourSalary = perDaySalary / 7;
                 const shortfallDeduction = shortfallHours * perHourSalary;
-                const totalDeductions = esi + pf + pt + shortfallDeduction;
+                const totalDeductions = tds + pf + pt + shortfallDeduction;
                 const netSalary = grossSalary - totalDeductions;
 
                 document.getElementById('calculatedDisplay').style.display = 'grid';
@@ -412,7 +412,7 @@
             const grossSalary = parseFloat(document.getElementById('grossSalary').value);
             const cls = parseInt(document.getElementById('cls').value) || 0;
             const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
-            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const tds = parseFloat(document.getElementById('tdsDeduction').value) || 0;
             const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
             const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
 
@@ -430,14 +430,14 @@
             const perDaySalary = grossSalary / totalPaidDays;
             const perHourSalary = perDaySalary / 7;
             const shortfallDeduction = shortfallHours * perHourSalary;
-            const totalDeductions = esi + pf + pt + shortfallDeduction;
+            const totalDeductions = tds + pf + pt + shortfallDeduction;
             const netSalary = grossSalary - totalDeductions;
 
             const staff = {
                 name, designation, department, grossSalary, cls,
                 totalWorkingHours, perDaySalary, perHourSalary,
                 shortfallHours, shortfallDeduction,
-                esi, pf, pt, totalDeductions, netSalary
+                tds, pf, pt, totalDeductions, netSalary
             };
 
             staffList.push(staff);
@@ -452,7 +452,7 @@
             document.getElementById('grossSalary').value = '';
             document.getElementById('cls').value = '0';
             document.getElementById('shortfallHours').value = '0';
-            document.getElementById('esiDeduction').value = '0';
+            document.getElementById('tdsDeduction').value = '0';
             document.getElementById('pfDeduction').value = '0';
             document.getElementById('ptDeduction').value = '0';
             document.getElementById('calculatedDisplay').style.display = 'none';
@@ -472,7 +472,7 @@
             document.getElementById('grossSalary').value = staff.grossSalary;
             document.getElementById('cls').value = staff.cls;
             document.getElementById('shortfallHours').value = staff.shortfallHours;
-            document.getElementById('esiDeduction').value = staff.esi;
+            document.getElementById('tdsDeduction').value = staff.tds;
             document.getElementById('pfDeduction').value = staff.pf;
             document.getElementById('ptDeduction').value = staff.pt;
             
@@ -492,7 +492,7 @@
             const grossSalary = parseFloat(document.getElementById('grossSalary').value);
             const cls = parseInt(document.getElementById('cls').value) || 0;
             const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
-            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const tds = parseFloat(document.getElementById('tdsDeduction').value) || 0;
             const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
             const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
 
@@ -510,14 +510,14 @@
             const perDaySalary = grossSalary / totalPaidDays;
             const perHourSalary = perDaySalary / 7;
             const shortfallDeduction = shortfallHours * perHourSalary;
-            const totalDeductions = esi + pf + pt + shortfallDeduction;
+            const totalDeductions = tds + pf + pt + shortfallDeduction;
             const netSalary = grossSalary - totalDeductions;
 
             staffList[editingIndex] = {
                 name, designation, department, grossSalary, cls,
                 totalWorkingHours, perDaySalary, perHourSalary,
                 shortfallHours, shortfallDeduction,
-                esi, pf, pt, totalDeductions, netSalary
+                tds, pf, pt, totalDeductions, netSalary
             };
 
             renderTable();
@@ -550,7 +550,7 @@
                     <td>₹${staff.perHourSalary.toFixed(2)}</td>
                     <td>${staff.shortfallHours.toFixed(2)}</td>
                     <td>₹${staff.shortfallDeduction.toFixed(2)}</td>
-                    <td>₹${staff.esi.toFixed(2)}</td>
+                    <td>₹${staff.tds.toFixed(2)}</td>
                     <td>₹${staff.pf.toFixed(2)}</td>
                     <td>₹${staff.pt.toFixed(2)}</td>
                     <td>₹${staff.totalDeductions.toFixed(2)}</td>
@@ -583,7 +583,7 @@
                 [],
                 ['Name', 'Designation', 'Department', 'Gross Salary', 'CLs', 'Total Working Hours', 
                  'Per Day Salary', 'Per Hour Salary', 'Shortfall Hours', 'Shortfall Amount', 
-                 'ESI Deduction', 'PF Deduction', 'PT Deduction', 'Total Deductions', 'Net Salary']
+                 'TDS Deduction', 'PF Deduction', 'PT Deduction', 'Total Deductions', 'Net Salary']
             ];
 
             staffList.forEach(staff => {
@@ -598,7 +598,7 @@
                     staff.perHourSalary.toFixed(2),
                     staff.shortfallHours.toFixed(2),
                     staff.shortfallDeduction.toFixed(2),
-                    staff.esi.toFixed(2),
+                    staff.tds.toFixed(2),
                     staff.pf.toFixed(2),
                     staff.pt.toFixed(2),
                     staff.totalDeductions.toFixed(2),
