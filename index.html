@@ -31,10 +31,26 @@
         h1 {
             text-align: center;
             color: #2d3748;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             font-size: 28px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .data-status {
+            text-align: center;
+            color: #48bb78;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .data-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .month-section {
@@ -162,6 +178,28 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
+        .btn-load {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-load:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-clear {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 62, 62, 0.3);
+        }
+
         .btn-remove {
             background: #f56565;
             color: white;
@@ -232,11 +270,31 @@
         .actions {
             text-align: center;
         }
+
+        .info-badge {
+            background: #bee3f8;
+            color: #2c5282;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>JAIN AGM AMACH Salary Calculator Tool</h1>
+        <div class="data-status" id="dataStatus">✓ Data Auto-Saved</div>
+        
+        <div class="data-controls">
+            <button class="btn btn-load" onclick="loadPreviousMonth()">📋 Load Previous Month Data</button>
+            <button class="btn btn-clear" onclick="clearAllData()">🗑️ Clear All Data</button>
+        </div>
+
+        <div class="info-badge">
+            💡 Your data is automatically saved in your browser and will persist across sessions
+        </div>
         
         <div class="month-section">
             <h2>Month Configuration</h2>
@@ -370,10 +428,102 @@
         let staffList = [];
         let editingIndex = -1;
 
+        // Load data on page load
+        window.addEventListener('load', function() {
+            loadData();
+        });
+
+        // Auto-save month configuration when changed
+        document.getElementById('month').addEventListener('change', saveData);
+        document.getElementById('workingDays').addEventListener('change', saveData);
+        document.getElementById('sundays').addEventListener('change', saveData);
+        document.getElementById('officialHolidays').addEventListener('change', saveData);
+
         // Real-time calculation preview
         document.querySelectorAll('#grossSalary, #shortfallHours, #tdsDeduction, #pfDeduction, #ptDeduction').forEach(input => {
             input.addEventListener('input', updateCalculationPreview);
         });
+
+        function saveData() {
+            const data = {
+                staffList: staffList,
+                month: document.getElementById('month').value,
+                workingDays: document.getElementById('workingDays').value,
+                sundays: document.getElementById('sundays').value,
+                officialHolidays: document.getElementById('officialHolidays').value,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('salaryCalculatorData', JSON.stringify(data));
+            showSaveStatus();
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('salaryCalculatorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                staffList = data.staffList || [];
+                document.getElementById('month').value = data.month || '';
+                document.getElementById('workingDays').value = data.workingDays || '';
+                document.getElementById('sundays').value = data.sundays || '0';
+                document.getElementById('officialHolidays').value = data.officialHolidays || '0';
+                renderTable();
+                
+                if (staffList.length > 0) {
+                    const lastSaved = new Date(data.timestamp);
+                    document.getElementById('dataStatus').textContent = `✓ Data Loaded (Last saved: ${lastSaved.toLocaleDateString()})`;
+                }
+            }
+        }
+
+        function loadPreviousMonth() {
+            const savedData = localStorage.getItem('salaryCalculatorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                if (data.staffList && data.staffList.length > 0) {
+                    // Load only staff details (not month configuration)
+                    staffList = data.staffList.map(staff => ({
+                        ...staff,
+                        cls: 0,
+                        shortfallHours: 0,
+                        shortfallDeduction: 0
+                    }));
+                    
+                    // Clear month-specific values
+                    document.getElementById('cls').value = '0';
+                    document.getElementById('shortfallHours').value = '0';
+                    
+                    renderTable();
+                    saveData();
+                    alert('Previous month staff data loaded! Please update the month and recalculate as needed.');
+                } else {
+                    alert('No previous data found!');
+                }
+            } else {
+                alert('No previous data found!');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone!')) {
+                localStorage.removeItem('salaryCalculatorData');
+                staffList = [];
+                document.getElementById('month').value = '';
+                document.getElementById('workingDays').value = '';
+                document.getElementById('sundays').value = '0';
+                document.getElementById('officialHolidays').value = '0';
+                renderTable();
+                clearForm();
+                document.getElementById('dataStatus').textContent = '✓ All Data Cleared';
+                setTimeout(() => {
+                    document.getElementById('dataStatus').textContent = '✓ Data Auto-Saved';
+                }, 2000);
+            }
+        }
+
+        function showSaveStatus() {
+            document.getElementById('dataStatus').textContent = '✓ Data Auto-Saved';
+            document.getElementById('dataStatus').style.color = '#48bb78';
+        }
 
         function updateCalculationPreview() {
             const workingDays = parseInt(document.getElementById('workingDays').value) || 0;
@@ -443,6 +593,7 @@
             staffList.push(staff);
             renderTable();
             clearForm();
+            saveData();
         }
 
         function clearForm() {
@@ -522,6 +673,7 @@
 
             renderTable();
             clearForm();
+            saveData();
         }
 
         function cancelEdit() {
@@ -529,8 +681,11 @@
         }
 
         function removeStaff(index) {
-            staffList.splice(index, 1);
-            renderTable();
+            if (confirm('Are you sure you want to remove this staff member?')) {
+                staffList.splice(index, 1);
+                renderTable();
+                saveData();
+            }
         }
 
         function renderTable() {
