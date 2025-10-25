@@ -84,14 +84,14 @@
 
       <div style="height:10px"></div>
       <div class="controls">
-        <button type="button" onclick="addRow()">Add Staff Row</button>
-        <button type="button" class="secondary" onclick="addSampleRows()">Add Sample 5 Rows</button>
-        <button type="button" onclick="calculateAll()">Calculate All</button>
-        <button type="button" class="secondary" onclick="downloadCSV()">Download CSV</button>
-        <button type="button" class="secondary" onclick="exportXLSX()">Export Excel (.xlsx)</button>
-        <button type="button" class="secondary" onclick="exportPDF()">Export PDF</button>
-        <button type="button" class="secondary" onclick="printSheet()">Print Sheet</button>
-        <button type="button" class="secondary" onclick="clearRows()">Clear All Rows</button>
+        <button id="btnAddRow" type="button">Add Staff Row</button>
+        <button id="btnAddSample" type="button" class="secondary">Add Sample 5 Rows</button>
+        <button id="btnCalcAll" type="button">Calculate All</button>
+        <button id="btnCSV" type="button" class="secondary">Download CSV</button>
+        <button id="btnXLSX" type="button" class="secondary">Export Excel (.xlsx)</button>
+        <button id="btnPDF" type="button" class="secondary">Export PDF</button>
+        <button id="btnPrint" type="button" class="secondary">Print Sheet</button>
+        <button id="btnClear" type="button" class="secondary">Clear All Rows</button>
       </div>
     </div>
 
@@ -132,94 +132,90 @@
 
 <script>
 // helper
-function $(id){return document.getElementById(id)}
+function el(id){return document.getElementById(id)}
 function formatMoney(x){return Number(x||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 
 // initialize year select
-(function initYears(){const ys=$('yearSelect');for(let y=2020;y<=2030;y++){const o=document.createElement('option');o.value=y;o.text=y;if(y===2025)o.selected=true;ys.appendChild(o)}})();
+(function initYears(){const ys=el('yearSelect');for(let y=2020;y<=2030;y++){const o=document.createElement('option');o.value=y;o.text=y;if(y===2025)o.selected=true;ys.appendChild(o)}})();
 
 const DEPARTMENTS = ["SAMHITA & SIDDHANTA","RACHANA","KRIYA","DG","RSBK","AGADA","ROGA NIDANA","SW","KC","PK","SHALYA","SHALAKYA","PTSR","KB"];
 const DESIGNATIONS = [{v:'Assistant Professor',t:'Assistant Prof'},{v:'Associate Professor',t:'Associate Prof'},{v:'Professor',t:'Professor'}];
 
 let rowIdCounter = 0;
 function addRow(prefill={}){
-  try{
-    const tbody = $('staffBody');
-    const tr = document.createElement('tr');
-    const id = ++rowIdCounter;
-    tr.dataset.rowid = id;
+  const tbody = el('staffBody');
+  const tr = document.createElement('tr');
+  const id = ++rowIdCounter;
+  tr.dataset.rowid = id;
 
-    // use default CL days for new rows if not provided in prefill
-    const defaultCL = typeof prefill.clDays !== 'undefined' ? prefill.clDays : Number($('defaultCLDays').value)||0;
+  const defaultCL = typeof prefill.clDays !== 'undefined' ? prefill.clDays : Number(el('defaultCLDays').value)||0;
 
-    tr.innerHTML = `
-      <td>${id}</td>
-      <td><input type="text" class="inp name" value="${(prefill.name||'').replace(/"/g,'&quot;')}"></td>
-      <td class="desigCell"></td>
-      <td class="deptCell"></td>
-      <td><input type="number" class="inp gross" value="${prefill.gross||57000}"></td>
-      <td><input type="number" class="inp clDays" value="${defaultCL}" min="0"></td>
-      <td><input type="number" class="inp shortfall" value="${prefill.shortfall||15}" step="0.25" min="0"></td>
-      <td><input type="number" class="inp epf" value="${prefill.epfAmount||684}" step="0.01" min="0"></td>
-      <td><input type="number" class="inp esi" value="${prefill.esiAmount||100}" step="0.01" min="0"></td>
-      <td><input type="number" class="inp pt" value="${prefill.profTaxAmt||200}" step="0.01" min="0"></td>
-      <td class="out unpaid">-</td>
-      <td class="out totalDeduct">-</td>
-      <td class="out net">-</td>
-      <td style="white-space:nowrap"><button type="button" class="action-btn" onclick="calcRow(this)">Calc</button> <button type="button" class="action-btn" onclick="removeRow(this)">Remove</button></td>
-    `;
+  tr.innerHTML = `
+    <td>${id}</td>
+    <td><input type="text" class="inp name" value="${(prefill.name||'').replace(/"/g,'&quot;')}"></td>
+    <td class="desigCell"></td>
+    <td class="deptCell"></td>
+    <td><input type="number" class="inp gross" value="${prefill.gross||57000}"></td>
+    <td><input type="number" class="inp clDays" value="${defaultCL}" min="0"></td>
+    <td><input type="number" class="inp shortfall" value="${prefill.shortfall||15}" step="0.25" min="0"></td>
+    <td><input type="number" class="inp epf" value="${prefill.epfAmount||684}" step="0.01" min="0"></td>
+    <td><input type="number" class="inp esi" value="${prefill.esiAmount||100}" step="0.01" min="0"></td>
+    <td><input type="number" class="inp pt" value="${prefill.profTaxAmt||200}" step="0.01" min="0"></td>
+    <td class="out unpaid">-</td>
+    <td class="out totalDeduct">-</td>
+    <td class="out net">-</td>
+    <td style="white-space:nowrap"></td>
+  `;
 
-    // insert designations select
-    const desTd = tr.querySelector('.desigCell');
-    const desSel = document.createElement('select');
-    DESIGNATIONS.forEach(d=>{const o=document.createElement('option');o.value=d.v;o.text=d.t; if(prefill.desig && prefill.desig==d.v) o.selected=true; desSel.appendChild(o)});
-    desTd.appendChild(desSel);
+  // insert designations select
+  const desTd = tr.querySelector('.desigCell');
+  const desSel = document.createElement('select');
+  DESIGNATIONS.forEach(d=>{const o=document.createElement('option');o.value=d.v;o.text=d.t; if(prefill.desig && prefill.desig==d.v) o.selected=true; desSel.appendChild(o)});
+  desTd.appendChild(desSel);
 
-    // insert dept select
-    const deptTd = tr.querySelector('.deptCell');
-    const deptSel = document.createElement('select');
-    DEPARTMENTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.text=d; if(prefill.dept && prefill.dept==d) o.selected=true; deptSel.appendChild(o)});
-    deptTd.appendChild(deptSel);
+  // insert dept select
+  const deptTd = tr.querySelector('.deptCell');
+  const deptSel = document.createElement('select');
+  DEPARTMENTS.forEach(d=>{const o=document.createElement('option');o.value=d;o.text=d; if(prefill.dept && prefill.dept==d) o.selected=true; deptSel.appendChild(o)});
+  deptTd.appendChild(deptSel);
 
-    tbody.appendChild(tr);
-  }catch(err){
-    console.error('addRow error', err);
-    alert('Could not add row — see console for details.');
-  }
+  // actions
+  const actionTd = tr.querySelector('td:last-child');
+  const calcBtn = document.createElement('button'); calcBtn.type='button'; calcBtn.className='action-btn'; calcBtn.innerText='Calc';
+  calcBtn.addEventListener('click',()=>computeForTr(tr));
+  const removeBtn = document.createElement('button'); removeBtn.type='button'; removeBtn.className='action-btn'; removeBtn.innerText='Remove';
+  removeBtn.addEventListener('click',()=>{ if(confirm('Remove this row?')) tr.remove(); });
+  actionTd.appendChild(calcBtn); actionTd.appendChild(removeBtn);
+
+  tbody.appendChild(tr);
 }
 
-function removeRow(btn){ if(!confirm('Remove this row?')) return; const tr = btn.closest('tr'); tr.parentNode.removeChild(tr); }
-function clearRows(){ if(!confirm('Clear all rows?')) return; $('staffBody').innerHTML=''; rowIdCounter=0; }
-
-function calcRow(btn){ const tr = btn.closest('tr'); computeForTr(tr); }
+function clearRows(){ if(!confirm('Clear all rows?')) return; el('staffBody').innerHTML=''; rowIdCounter=0; }
 
 function computeForTr(tr){
-  try{
-    const totalDays = Number($('totalDays').value)||30;
-    const sundays = Number($('sundays').value)||0;
-    const paidHolidays = Number($('paidHolidays').value)||0; // additional paid holidays
-    const hoursPerDay = Number($('hoursPerDay').value)||7;
-    const gross = Number(tr.querySelector('.gross').value)||0;
-    const clDays = Number(tr.querySelector('.clDays').value)||0;
-    const shortfall = Number(tr.querySelector('.shortfall').value)||0;
-    const epf = Number(tr.querySelector('.epf').value)||0;
-    const esi = Number(tr.querySelector('.esi').value)||0;
-    const pt = Number(tr.querySelector('.pt').value)||0;
+  const totalDays = Number(el('totalDays').value)||30;
+  const sundays = Number(el('sundays').value)||0;
+  const paidHolidays = Number(el('paidHolidays').value)||0; // additional paid holidays
+  const hoursPerDay = Number(el('hoursPerDay').value)||7;
+  const gross = Number(tr.querySelector('.gross').value)||0;
+  const clDays = Number(tr.querySelector('.clDays').value)||0;
+  const shortfall = Number(tr.querySelector('.shortfall').value)||0;
+  const epf = Number(tr.querySelector('.epf').value)||0;
+  const esi = Number(tr.querySelector('.esi').value)||0;
+  const pt = Number(tr.querySelector('.pt').value)||0;
 
-    // working days exclude Sundays and paid holidays (both are paid rest-days)
-    const workingDays = Math.max(0, totalDays - sundays - paidHolidays);
-    const totalWorkingHours = workingDays * hoursPerDay;
-    const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
+  const workingDays = Math.max(0, totalDays - sundays - paidHolidays);
+  const totalWorkingHours = workingDays * hoursPerDay;
+  const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
 
-    const unpaidDeduct = shortfall * hourlyRate;
-    const subtotal = gross - unpaidDeduct;
-    const totalDeductions = Number(epf)+Number(esi)+Number(pt);
-    const net = subtotal - totalDeductions;
+  const unpaidDeduct = shortfall * hourlyRate;
+  const subtotal = gross - unpaidDeduct;
+  const totalDeductions = Number(epf)+Number(esi)+Number(pt);
+  const net = subtotal - totalDeductions;
 
-    tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
-    tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
-    tr.querySelector('.out.net').innerText = formatMoney(net);
-  }catch(err){ console.error('computeForTr error', err); alert('Error computing row — see console.'); }
+  tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
+  tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
+  tr.querySelector('.out.net').innerText = formatMoney(net);
 }
 
 function calculateAll(){
@@ -236,8 +232,10 @@ function downloadCSV(){
   const data = [header];
   rows.forEach((tr,idx)=>{
     const name = tr.querySelector('.name').value||'';
-    const desig = tr.querySelectorAll('select')[0].value||'';
-    const dept = tr.querySelectorAll('select')[1].value||'';
+    const desel = tr.querySelectorAll('select')[0];
+    const deptel = tr.querySelectorAll('select')[1];
+    const desig = desel ? desel.value : '';
+    const dept = deptel ? deptel.value : '';
     const gross = tr.querySelector('.gross').value||'';
     const clDays = tr.querySelector('.clDays').value||'';
     const shortfall = tr.querySelector('.shortfall').value||'';
@@ -249,11 +247,10 @@ function downloadCSV(){
     const net = tr.querySelector('.out.net').innerText||'';
     data.push([idx+1, name, desig, dept, gross, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
   });
-  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('
-');
+  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('\n');
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+$('monthSelect').value+'_'+$('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+el('monthSelect').value+'_'+el('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
 function exportXLSX(){
@@ -261,12 +258,13 @@ function exportXLSX(){
   const rows = Array.from(document.querySelectorAll('#staffBody tr'));
   if(rows.length===0){alert('No rows to export'); return}
   const aoa = [];
-  // header row with friendly names
   aoa.push(['Sr','Name','Designation','Department','Gross (₹)','CL days','Shortfall (hrs)','Unpaid Deduction (₹)','EPF (₹)','ESI (₹)','PT (₹)','Total Deductions (₹)','Net Pay (₹)']);
   rows.forEach((tr,idx)=>{
     const name = tr.querySelector('.name').value||'';
-    const desig = tr.querySelectorAll('select')[0].value||'';
-    const dept = tr.querySelectorAll('select')[1].value||'';
+    const desel = tr.querySelectorAll('select')[0];
+    const deptel = tr.querySelectorAll('select')[1];
+    const desig = desel ? desel.value : '';
+    const dept = deptel ? deptel.value : '';
     const gross = Number(tr.querySelector('.gross').value)||0;
     const clDays = Number(tr.querySelector('.clDays').value)||0;
     const shortfall = Number(tr.querySelector('.shortfall').value)||0;
@@ -279,23 +277,15 @@ function exportXLSX(){
     aoa.push([idx+1,name,desig,dept,gross,clDays,shortfall,Number(unpaid),epf,esi,pt,Number(totalDeduct),Number(net)]);
   });
 
-  // create workbook and worksheet
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  // set column widths for readability
   const wscols = [{wpx:30},{wpx:140},{wpx:110},{wpx:110},{wpx:90},{wpx:60},{wpx:80},{wpx:110},{wpx:90},{wpx:90},{wpx:90},{wpx:120},{wpx:110}];
   ws['!cols'] = wscols;
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'SalarySheet');
-
-  // add header info sheetProps
-  const month = $('monthSelect').options[$('monthSelect').selectedIndex].text;
-  const year = $('yearSelect').value;
-  const college = $('college').value;
-  // add workbook properties
+  const month = el('monthSelect').options[el('monthSelect').selectedIndex].text;
+  const year = el('yearSelect').value;
+  const college = el('college').value;
   wb.Props = {Title: 'Salary Sheet - '+month+' '+year, Subject: college, Author: 'JAIN AGM AMCH'};
-
-  // write file
   const fileName = `salary_sheet_${month}_${year}.xlsx`;
   XLSX.writeFile(wb, fileName, {bookType:'xlsx', type:'binary'});
 }
@@ -303,47 +293,31 @@ function exportXLSX(){
 async function exportPDF(){
   calculateAll();
   const table = document.getElementById('staffTable');
-  const month = $('monthSelect').options[$('monthSelect').selectedIndex].text;
-  const year = $('yearSelect').value;
-  const college = $('college').value;
-
-  // build a printable clone with header
+  const month = el('monthSelect').options[el('monthSelect').selectedIndex].text;
+  const year = el('yearSelect').value;
+  const college = el('college').value;
   const wrapper = document.createElement('div');
-  wrapper.style.padding = '12px';
-  wrapper.style.background = '#fff';
-  wrapper.style.color = '#111';
-  wrapper.style.width = '100%';
-  const header = document.createElement('div');
-  header.innerHTML = `<h2 style="margin:0">${college}</h2><div style="margin-bottom:8px">Salary Sheet — ${month} ${year}</div>`;
+  wrapper.style.padding = '12px'; wrapper.style.background = '#fff'; wrapper.style.color = '#111'; wrapper.style.width = '100%';
+  const header = document.createElement('div'); header.innerHTML = `<h2 style="margin:0">${college}</h2><div style="margin-bottom:8px">Salary Sheet — ${month} ${year}</div>`;
   wrapper.appendChild(header);
-
-  // clone table and adjust styles for canvas
   const tblClone = table.cloneNode(true);
   tblClone.style.borderCollapse = 'collapse';
   tblClone.querySelectorAll('th,td').forEach(cell=>{ cell.style.border = '1px solid #ccc'; cell.style.padding='6px'; cell.style.fontSize='10px'; });
   wrapper.appendChild(tblClone);
-
   document.body.appendChild(wrapper);
   try{
     const canvas = await html2canvas(wrapper, {scale:2});
     const imgData = canvas.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('l','pt','a4'); // landscape A4
+    const pdf = new jsPDF('l','pt','a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    // fit image to PDF (maintain aspect)
     const imgProps = { width: canvas.width, height: canvas.height };
     const ratio = Math.min(pdfWidth / imgProps.width, pdfHeight / imgProps.height);
-    const imgWidth = imgProps.width * ratio;
-    const imgHeight = imgProps.height * ratio;
-
+    const imgWidth = imgProps.width * ratio; const imgHeight = imgProps.height * ratio;
     let position = 20;
     pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, position, imgWidth, imgHeight);
-
-    // handle multi-page if content taller than page
     if(imgHeight > pdfHeight - 40){
-      // calculate number of pages
       const totalPages = Math.ceil(imgHeight / (pdfHeight - 40));
       for(let i=1;i<totalPages;i++){
         pdf.addPage();
@@ -351,7 +325,6 @@ async function exportPDF(){
         pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, yPos, imgWidth, imgHeight);
       }
     }
-
     const fileName = `salary_sheet_${month}_${year}.pdf`;
     pdf.save(fileName);
     alert('PDF generated: '+fileName);
@@ -363,11 +336,18 @@ function printSheet(){ calculateAll(); window.print(); }
 
 function addSampleRows(){ for(let i=0;i<5;i++){ addRow({name:'Dr. Example '+(i+1)}); } }
 
-// exported earlier compute functions (kept for compatibility)
-function calcRow(btn){ const tr = btn.closest('tr'); computeForTr(tr); }
-
-// auto-add one empty row on load
-window.addEventListener('DOMContentLoaded',()=>{ addRow(); });
+// attach event listeners to buttons after DOM loaded
+document.addEventListener('DOMContentLoaded',()=>{
+  el('btnAddRow').addEventListener('click',()=>addRow());
+  el('btnAddSample').addEventListener('click',addSampleRows);
+  el('btnCalcAll').addEventListener('click',calculateAll);
+  el('btnCSV').addEventListener('click',downloadCSV);
+  el('btnXLSX').addEventListener('click',exportXLSX);
+  el('btnPDF').addEventListener('click',exportPDF);
+  el('btnPrint').addEventListener('click',printSheet);
+  el('btnClear').addEventListener('click',clearRows);
+  addRow(); // initial row
+});
 
 </script>
 </body>
