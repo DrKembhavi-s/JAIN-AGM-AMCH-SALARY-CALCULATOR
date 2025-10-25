@@ -69,8 +69,16 @@
           <input type="number" id="sundays" value="4">
         </div>
         <div style="width:140px">
+          <label>Paid holidays (additional, days)</label>
+          <input type="number" id="paidHolidays" value="0" min="0">
+        </div>
+        <div style="width:140px">
           <label>Hours / day</label>
           <input type="number" id="hoursPerDay" value="7" step="0.1">
+        </div>
+        <div style="width:140px">
+          <label>Default CL days for new rows</label>
+          <input type="number" id="defaultCLDays" value="2" min="0" step="1">
         </div>
       </div>
 
@@ -116,7 +124,7 @@
     </div>
 
     <div class="card">
-      <div class="small muted">Notes: Monthly salary covers Sundays/holidays. CLs counted as paid (not deducted). Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
+      <div class="small muted">Notes: Monthly salary covers Sundays/paid holidays. Use <strong>Paid holidays</strong> to add extra paid days in the month (e.g. festival/state holidays). Default CL days value applies to new rows but each row's CL days can be edited individually. Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
     </div>
 
     <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use exports to save records.</footer>
@@ -141,13 +149,16 @@ function addRow(prefill={}){
     const id = ++rowIdCounter;
     tr.dataset.rowid = id;
 
+    // use default CL days for new rows if not provided in prefill
+    const defaultCL = typeof prefill.clDays !== 'undefined' ? prefill.clDays : Number($('defaultCLDays').value)||0;
+
     tr.innerHTML = `
       <td>${id}</td>
       <td><input type="text" class="inp name" value="${(prefill.name||'').replace(/"/g,'&quot;')}"></td>
       <td class="desigCell"></td>
       <td class="deptCell"></td>
       <td><input type="number" class="inp gross" value="${prefill.gross||57000}"></td>
-      <td><input type="number" class="inp clDays" value="${prefill.clDays||2}" min="0"></td>
+      <td><input type="number" class="inp clDays" value="${defaultCL}" min="0"></td>
       <td><input type="number" class="inp shortfall" value="${prefill.shortfall||15}" step="0.25" min="0"></td>
       <td><input type="number" class="inp epf" value="${prefill.epfAmount||684}" step="0.01" min="0"></td>
       <td><input type="number" class="inp esi" value="${prefill.esiAmount||100}" step="0.01" min="0"></td>
@@ -186,6 +197,7 @@ function computeForTr(tr){
   try{
     const totalDays = Number($('totalDays').value)||30;
     const sundays = Number($('sundays').value)||0;
+    const paidHolidays = Number($('paidHolidays').value)||0; // additional paid holidays
     const hoursPerDay = Number($('hoursPerDay').value)||7;
     const gross = Number(tr.querySelector('.gross').value)||0;
     const clDays = Number(tr.querySelector('.clDays').value)||0;
@@ -194,7 +206,8 @@ function computeForTr(tr){
     const esi = Number(tr.querySelector('.esi').value)||0;
     const pt = Number(tr.querySelector('.pt').value)||0;
 
-    const workingDays = Math.max(0, totalDays - sundays);
+    // working days exclude Sundays and paid holidays (both are paid rest-days)
+    const workingDays = Math.max(0, totalDays - sundays - paidHolidays);
     const totalWorkingHours = workingDays * hoursPerDay;
     const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
 
@@ -236,7 +249,8 @@ function downloadCSV(){
     const net = tr.querySelector('.out.net').innerText||'';
     data.push([idx+1, name, desig, dept, gross, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
   });
-  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('\n');
+  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('
+');
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+$('monthSelect').value+'_'+$('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
@@ -333,7 +347,6 @@ async function exportPDF(){
       const totalPages = Math.ceil(imgHeight / (pdfHeight - 40));
       for(let i=1;i<totalPages;i++){
         pdf.addPage();
-        const sx = 0; // source y offset not supported here, instead render full image scaled and translated
         const yPos = (-(pdfHeight-40)*i) + position;
         pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth)/2, yPos, imgWidth, imgHeight);
       }
@@ -350,45 +363,8 @@ function printSheet(){ calculateAll(); window.print(); }
 
 function addSampleRows(){ for(let i=0;i<5;i++){ addRow({name:'Dr. Example '+(i+1)}); } }
 
-function removeRow(btn){ if(!confirm('Remove this row?')) return; const tr = btn.closest('tr'); tr.parentNode.removeChild(tr); }
-
-function clearRows(){ if(!confirm('Clear all rows?')) return; $('staffBody').innerHTML=''; rowIdCounter=0; }
-
 // exported earlier compute functions (kept for compatibility)
 function calcRow(btn){ const tr = btn.closest('tr'); computeForTr(tr); }
-
-function computeForTr(tr){
-  try{
-    const totalDays = Number($('totalDays').value)||30;
-    const sundays = Number($('sundays').value)||0;
-    const hoursPerDay = Number($('hoursPerDay').value)||7;
-    const gross = Number(tr.querySelector('.gross').value)||0;
-    const clDays = Number(tr.querySelector('.clDays').value)||0;
-    const shortfall = Number(tr.querySelector('.shortfall').value)||0;
-    const epf = Number(tr.querySelector('.epf').value)||0;
-    const esi = Number(tr.querySelector('.esi').value)||0;
-    const pt = Number(tr.querySelector('.pt').value)||0;
-
-    const workingDays = Math.max(0, totalDays - sundays);
-    const totalWorkingHours = workingDays * hoursPerDay;
-    const hourlyRate = totalWorkingHours>0 ? gross / totalWorkingHours : 0;
-
-    const unpaidDeduct = shortfall * hourlyRate;
-    const subtotal = gross - unpaidDeduct;
-    const totalDeductions = Number(epf)+Number(esi)+Number(pt);
-    const net = subtotal - totalDeductions;
-
-    tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
-    tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
-    tr.querySelector('.out.net').innerText = formatMoney(net);
-  }catch(err){ console.error('computeForTr error', err); alert('Error computing row — see console.'); }
-}
-
-function calculateAll(){
-  const rows = Array.from(document.querySelectorAll('#staffBody tr'));
-  rows.forEach(tr=>computeForTr(tr));
-  alert('Calculated '+rows.length+' rows. You can now Download CSV, Export Excel or Export PDF.');
-}
 
 // auto-add one empty row on load
 window.addEventListener('DOMContentLoaded',()=>{ addRow(); });
