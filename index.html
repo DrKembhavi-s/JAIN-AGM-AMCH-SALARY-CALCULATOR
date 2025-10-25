@@ -167,10 +167,22 @@
             color: white;
             padding: 8px 15px;
             font-size: 12px;
+            margin-left: 5px;
         }
 
         .btn-remove:hover {
             background: #e53e3e;
+        }
+
+        .btn-edit {
+            background: #ed8936;
+            color: white;
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        .btn-edit:hover {
+            background: #dd6b20;
         }
 
         .staff-table {
@@ -318,7 +330,9 @@
                     <div class="calc-item">Total Deductions: <strong id="dispTotalDed">₹0</strong></div>
                     <div class="calc-item">Net Salary: <strong id="dispNetSalary">₹0</strong></div>
                 </div>
-                <button class="btn btn-add" onclick="addStaff()">Add Staff to List</button>
+                <button class="btn btn-add" onclick="addStaff()" id="addBtn">Add Staff to List</button>
+                <button class="btn btn-add" onclick="updateStaff()" id="updateBtn" style="display:none; background:#ed8936;">Update Staff</button>
+                <button class="btn btn-remove" onclick="cancelEdit()" id="cancelBtn" style="display:none; margin-left:10px;">Cancel</button>
             </div>
         </div>
 
@@ -354,6 +368,7 @@
 
     <script>
         let staffList = [];
+        let editingIndex = -1;
 
         // Real-time calculation preview
         document.querySelectorAll('#grossSalary, #shortfallHours, #esiDeduction, #pfDeduction, #ptDeduction').forEach(input => {
@@ -441,6 +456,76 @@
             document.getElementById('pfDeduction').value = '0';
             document.getElementById('ptDeduction').value = '0';
             document.getElementById('calculatedDisplay').style.display = 'none';
+            editingIndex = -1;
+            document.getElementById('addBtn').style.display = 'inline-block';
+            document.getElementById('updateBtn').style.display = 'none';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        function editStaff(index) {
+            editingIndex = index;
+            const staff = staffList[index];
+            
+            document.getElementById('staffName').value = staff.name;
+            document.getElementById('designation').value = staff.designation;
+            document.getElementById('department').value = staff.department;
+            document.getElementById('grossSalary').value = staff.grossSalary;
+            document.getElementById('cls').value = staff.cls;
+            document.getElementById('shortfallHours').value = staff.shortfallHours;
+            document.getElementById('esiDeduction').value = staff.esi;
+            document.getElementById('pfDeduction').value = staff.pf;
+            document.getElementById('ptDeduction').value = staff.pt;
+            
+            updateCalculationPreview();
+            
+            document.getElementById('addBtn').style.display = 'none';
+            document.getElementById('updateBtn').style.display = 'inline-block';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateStaff() {
+            const name = document.getElementById('staffName').value.trim();
+            const designation = document.getElementById('designation').value;
+            const department = document.getElementById('department').value;
+            const grossSalary = parseFloat(document.getElementById('grossSalary').value);
+            const cls = parseInt(document.getElementById('cls').value) || 0;
+            const shortfallHours = parseFloat(document.getElementById('shortfallHours').value) || 0;
+            const esi = parseFloat(document.getElementById('esiDeduction').value) || 0;
+            const pf = parseFloat(document.getElementById('pfDeduction').value) || 0;
+            const pt = parseFloat(document.getElementById('ptDeduction').value) || 0;
+
+            const workingDays = parseInt(document.getElementById('workingDays').value);
+            const sundays = parseInt(document.getElementById('sundays').value) || 0;
+            const holidays = parseInt(document.getElementById('officialHolidays').value) || 0;
+
+            if (!name || !designation || !department || !grossSalary || !workingDays) {
+                alert('Please fill all required fields!');
+                return;
+            }
+
+            const totalPaidDays = workingDays + sundays + holidays + cls;
+            const totalWorkingHours = totalPaidDays * 7;
+            const perDaySalary = grossSalary / totalPaidDays;
+            const perHourSalary = perDaySalary / 7;
+            const shortfallDeduction = shortfallHours * perHourSalary;
+            const totalDeductions = esi + pf + pt + shortfallDeduction;
+            const netSalary = grossSalary - totalDeductions;
+
+            staffList[editingIndex] = {
+                name, designation, department, grossSalary, cls,
+                totalWorkingHours, perDaySalary, perHourSalary,
+                shortfallHours, shortfallDeduction,
+                esi, pf, pt, totalDeductions, netSalary
+            };
+
+            renderTable();
+            clearForm();
+        }
+
+        function cancelEdit() {
+            clearForm();
         }
 
         function removeStaff(index) {
@@ -470,7 +555,10 @@
                     <td>₹${staff.pt.toFixed(2)}</td>
                     <td>₹${staff.totalDeductions.toFixed(2)}</td>
                     <td>₹${staff.netSalary.toFixed(2)}</td>
-                    <td class="actions"><button class="btn btn-remove" onclick="removeStaff(${index})">Remove</button></td>
+                    <td class="actions">
+                        <button class="btn btn-edit" onclick="editStaff(${index})">Edit</button>
+                        <button class="btn btn-remove" onclick="removeStaff(${index})">Remove</button>
+                    </td>
                 `;
             });
         }
