@@ -37,7 +37,7 @@
       <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#eef2ff,#e6f0ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b5fff">JAM</div>
       <div>
         <h1>JAIN AGM AMCH SALARY CALCULATOR TOOL</h1>
-        <div class="small muted">Enter multiple staff rows, compute full salary sheet and export as CSV, formatted Excel (.xlsx) or PDF.</div>
+        <div class="small muted">Enter multiple staff rows, compute full salary sheet and export as CSV, formatted Excel (.xlsx) or PDF. Now shows per-hour salary per staff.</div>
       </div>
     </header>
 
@@ -105,6 +105,7 @@
               <th>Designation</th>
               <th>Department</th>
               <th class="narrow">Gross (₹)</th>
+              <th class="narrow">Per hour (₹)</th>
               <th class="narrow">CL days</th>
               <th class="narrow">Shortfall hrs</th>
               <th class="narrow">EPF ₹</th>
@@ -124,7 +125,7 @@
     </div>
 
     <div class="card">
-      <div class="small muted">Notes: Monthly salary covers Sundays/paid holidays. Use <strong>Paid holidays</strong> to add extra paid days in the month (e.g. festival/state holidays). Default CL days value applies to new rows but each row's CL days can be edited individually. Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
+      <div class="small muted">Notes: Monthly salary covers Sundays/paid holidays. Use <strong>Paid holidays</strong> to add extra paid days in the month (e.g. festival/state holidays). Default CL days value applies to new rows but each row's CL days can be edited individually. The <strong>Per hour</strong> column shows computed hourly rate based on working days (total days minus Sundays and paid holidays). Enter shortfall hours (unpaid) per staff. EPF/ESI inputs are exact deduction amounts. Export creates files you can save.</div>
     </div>
 
     <footer class="small muted">Data is stored only in-browser while this page is open (no server). Use exports to save records.</footer>
@@ -156,6 +157,7 @@ function addRow(prefill={}){
     <td class="desigCell"></td>
     <td class="deptCell"></td>
     <td><input type="number" class="inp gross" value="${prefill.gross||57000}"></td>
+    <td class="out hourly">-</td>
     <td><input type="number" class="inp clDays" value="${defaultCL}" min="0"></td>
     <td><input type="number" class="inp shortfall" value="${prefill.shortfall||15}" step="0.25" min="0"></td>
     <td><input type="number" class="inp epf" value="${prefill.epfAmount||684}" step="0.01" min="0"></td>
@@ -213,6 +215,7 @@ function computeForTr(tr){
   const totalDeductions = Number(epf)+Number(esi)+Number(pt);
   const net = subtotal - totalDeductions;
 
+  tr.querySelector('.out.hourly').innerText = formatMoney(hourlyRate);
   tr.querySelector('.out.unpaid').innerText = formatMoney(unpaidDeduct);
   tr.querySelector('.out.totalDeduct').innerText = formatMoney(totalDeductions);
   tr.querySelector('.out.net').innerText = formatMoney(net);
@@ -228,7 +231,7 @@ function downloadCSV(){
   calculateAll();
   const rows = Array.from(document.querySelectorAll('#staffBody tr'));
   if(rows.length===0){alert('No rows to export'); return}
-  const header = ['Sr','Name','Designation','Department','Gross','CL_days','Shortfall_hrs','Unpaid_Deduction','EPF','ESI','PT','Total_Deductions','Net_Pay'];
+  const header = ['Sr','Name','Designation','Department','Gross','PerHour','CL_days','Shortfall_hrs','Unpaid_Deduction','EPF','ESI','PT','Total_Deductions','Net_Pay'];
   const data = [header];
   rows.forEach((tr,idx)=>{
     const name = tr.querySelector('.name').value||'';
@@ -237,6 +240,7 @@ function downloadCSV(){
     const desig = desel ? desel.value : '';
     const dept = deptel ? deptel.value : '';
     const gross = tr.querySelector('.gross').value||'';
+    const perHour = tr.querySelector('.out.hourly').innerText||'';
     const clDays = tr.querySelector('.clDays').value||'';
     const shortfall = tr.querySelector('.shortfall').value||'';
     const unpaid = tr.querySelector('.out.unpaid').innerText||'';
@@ -245,9 +249,10 @@ function downloadCSV(){
     const pt = tr.querySelector('.pt').value||'';
     const totalDeduct = tr.querySelector('.out.totalDeduct').innerText||'';
     const net = tr.querySelector('.out.net').innerText||'';
-    data.push([idx+1, name, desig, dept, gross, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
+    data.push([idx+1, name, desig, dept, gross, perHour, clDays, shortfall, unpaid, epf, esi, pt, totalDeduct, net]);
   });
-  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('\n');
+  const csv = data.map(r=>r.map(c=>typeof c==='string' && c.includes(',') ? '"'+c.replace(/"/g,'""')+'"' : c).join(',')).join('
+');
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download = 'salary_sheet_'+el('monthSelect').value+'_'+el('yearSelect').value+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
@@ -258,7 +263,7 @@ function exportXLSX(){
   const rows = Array.from(document.querySelectorAll('#staffBody tr'));
   if(rows.length===0){alert('No rows to export'); return}
   const aoa = [];
-  aoa.push(['Sr','Name','Designation','Department','Gross (₹)','CL days','Shortfall (hrs)','Unpaid Deduction (₹)','EPF (₹)','ESI (₹)','PT (₹)','Total Deductions (₹)','Net Pay (₹)']);
+  aoa.push(['Sr','Name','Designation','Department','Gross (₹)','Per Hour (₹)','CL days','Shortfall (hrs)','Unpaid Deduction (₹)','EPF (₹)','ESI (₹)','PT (₹)','Total Deductions (₹)','Net Pay (₹)']);
   rows.forEach((tr,idx)=>{
     const name = tr.querySelector('.name').value||'';
     const desel = tr.querySelectorAll('select')[0];
@@ -266,19 +271,20 @@ function exportXLSX(){
     const desig = desel ? desel.value : '';
     const dept = deptel ? deptel.value : '';
     const gross = Number(tr.querySelector('.gross').value)||0;
+    const perHour = Number(tr.querySelector('.out.hourly').innerText.replace(/,/g,''))||0;
     const clDays = Number(tr.querySelector('.clDays').value)||0;
     const shortfall = Number(tr.querySelector('.shortfall').value)||0;
-    const unpaid = tr.querySelector('.out.unpaid').innerText.replace(/,/g, '')||0;
+    const unpaid = Number(tr.querySelector('.out.unpaid').innerText.replace(/,/g,''))||0;
     const epf = Number(tr.querySelector('.epf').value)||0;
     const esi = Number(tr.querySelector('.esi').value)||0;
     const pt = Number(tr.querySelector('.pt').value)||0;
-    const totalDeduct = tr.querySelector('.out.totalDeduct').innerText.replace(/,/g, '')||0;
-    const net = tr.querySelector('.out.net').innerText.replace(/,/g, '')||0;
-    aoa.push([idx+1,name,desig,dept,gross,clDays,shortfall,Number(unpaid),epf,esi,pt,Number(totalDeduct),Number(net)]);
+    const totalDeduct = Number(tr.querySelector('.out.totalDeduct').innerText.replace(/,/g,''))||0;
+    const net = Number(tr.querySelector('.out.net').innerText.replace(/,/g,''))||0;
+    aoa.push([idx+1,name,desig,dept,gross,perHour,clDays,shortfall,unpaid,epf,esi,pt,Number(totalDeduct),Number(net)]);
   });
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  const wscols = [{wpx:30},{wpx:140},{wpx:110},{wpx:110},{wpx:90},{wpx:60},{wpx:80},{wpx:110},{wpx:90},{wpx:90},{wpx:90},{wpx:120},{wpx:110}];
+  const wscols = [{wpx:30},{wpx:140},{wpx:110},{wpx:110},{wpx:90},{wpx:90},{wpx:60},{wpx:80},{wpx:110},{wpx:90},{wpx:90},{wpx:90},{wpx:120},{wpx:110}];
   ws['!cols'] = wscols;
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'SalarySheet');
